@@ -1,0 +1,11 @@
+id,nom,email,telephone,adresse,societe,site_web,notes,favori,date_creation,date_modification
+1,berterand Dupont,jean@email.com,+261 34 00 000 00,Lot 123, Antananarivo,Tech Mada,https://techmada.com,Client potentiel,true,2025-07-29T12:00:00,2025-07-29T12:05:00
+2,Sarah Rakoto,sarah.rakoto@email.com,+261 34 11 111 11,Immeuble A, Antsirabe,DataSoft,https://datasoft.mg,VIP,false,2025-07-28T09:15:00,2025-07-29T10:00:00
+3,Michel Andrianina,michel.andrianina@email.com,+261 32 22 222 22,Appart 4B, Fianarantsoa,GreenIT,https://greenit.mg,Ancien client,true,2025-07-27T14:30:00,2025-07-29T12:10:00
+4,Lova Rasoanaivo,lova.rasoanaivo@email.com,+261 33 33 333 33,Lot 45, Toamasina,Blue Ocean,https://blueocean.mg,À relancer,false,2025-07-25T08:00:00,2025-07-29T12:15:00
+5,Emma Randrianarisoa,emma.randrianarisoa@email.com,+261 34 44 444 44,Lot 99, Mahajanga,RedSun,https://redsun.mg,Nouveau,true,2025-07-29T11:00:00,2025-07-29T12:20:00
+6,Tojo Ranaivo,tojo.ranaivo@email.com,+261 32 55 555 55,Immeuble C, Toliara,CloudDev,https://clouddev.mg,Partenaire,false,2025-07-26T16:45:00,2025-07-29T12:25:00
+7,Hanitra Razafindrakoto,hanitra.razafindrakoto@email.com,+261 34 66 666 66,Lot 12, Antananarivo,NextGen,https://nextgen.mg,Prospect,true,2025-07-24T13:20:00,2025-07-29T12:30:00
+8,Patrick Rabe,patrick.rabe@email.com,+261 33 77 777 77,Appart 2A, Antsirabe,WebMada,https://webmada.mg,Client fidèle,true,2025-07-23T10:10:00,2025-07-29T12:35:00
+9,Voahirana Andriamihaja,voahirana.andriamihaja@email.com,+261 32 88 888 88,Lot 56, Fianarantsoa,SoftLink,https://softlink.mg,À contacter,false,2025-07-22T17:50:00,2025-07-29T12:40:00
+10,Eric Rabemanantsoa,eric.rabemanantsoa@email.com,+261 34 99 999 99,Lot 101, Mahajanga,ITPro,https://itpro.mg,Client potentiel,true,2025-07-21T15:05:00,2025-07-29T12:45:00
