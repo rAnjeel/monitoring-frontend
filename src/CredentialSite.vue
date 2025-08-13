@@ -26,7 +26,6 @@ const error = ref(null)
 const showModal = ref(false)
 const modalCredential = ref({})
 const syncResult = ref(null)
-// removed mismatch details modal state (unused)
 const updatedRows = ref([])
 const gridRefMismatch = ref(null)
 const gridRef = ref(null)
@@ -209,7 +208,6 @@ function onCellClickedContextMenu(params) {
     return
   }
 
-  // Otherwise open the quick context menu
   const row = params?.data || {}
   contextMenuItemsRuntime.value = [
     {
@@ -257,7 +255,6 @@ function applySearch() {
   }, 150)
 }
 
-// Met à jour filteredCredentials quand les credentials changent
 watch(credentials, () => {
   applySearch()
 })
@@ -307,6 +304,7 @@ async function syncSites() {
       // Afficher un résumé
       showSyncSummary();
     }
+    await loadCredentials();
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -408,7 +406,7 @@ async function updateSelectedCredentials(formValues) {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
     showModal.value = false
-    await loadCredentials()
+    await syncSites()
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
   }

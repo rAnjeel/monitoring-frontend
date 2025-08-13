@@ -1,7 +1,4 @@
 <script setup>
-import CredentialSite from './CredentialSite.vue'
-import CsvImport from './CsvImport.vue'
-import HeaderNavbar from './HeaderNavbar.vue'
 
 </script>
 
@@ -33,6 +30,9 @@ import HeaderNavbar from './HeaderNavbar.vue'
           </li>
           <li class="nav-item">
             <router-link to="/failed-logins" class="nav-link" href="#"><i class="bi bi-server"></i>Logs</router-link>>
+          </li>
+          <li class="nav-item">
+            <router-link to="/import-csv" class="nav-link" href="#"><i class="bi bi-arrow-down"></i>Import CSV</router-link>>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#"><i class="bi bi-gear"></i> Paramètres</a>
