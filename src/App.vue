@@ -6,7 +6,13 @@ import HeaderNavbar from './HeaderNavbar.vue'
 </script>
 
 <template>
-  <HeaderNavbar/>
-  <CsvImport @import="handleImport" @export="exportToCSV" />
-  <CredentialSite/>
+  <div id="app">
+    <nav>
+      <router-link to="/">Accueil</router-link> |
+      <router-link to="/failed-logins">Failed Logins</router-link>
+    </nav>
+
+    <!-- C’est ici que Vue affiche la page en fonction de la route -->
+    <router-view />
+  </div>
 </template>
