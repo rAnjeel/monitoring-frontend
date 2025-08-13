@@ -1,21 +1,24 @@
 <template>
   <div class="p-4 bg-gray-100 min-h-screen">
-    <h1 class="text-lg font-bold">Failed login attempts (live)</h1>
-    <div class="mt-4 space-y-3">
-      <div
-        v-for="(item, index) in failedLogins"
-        :key="index"
-        class="bg-white rounded-lg p-3 shadow-sm"
-      >
-        <div>
-          <strong>{{ item.siteUsername || 'unknown' }}</strong>
-          — <span class="text-gray-500">{{ item.Ip }}</span>
-        </div>
-        <div class="text-gray-500 text-sm">
-          {{ item.usernameMatch ? 'Username ok' : 'Username fail' }},
-          {{ item.passwordMatch ? 'Password ok' : 'Password fail' }},
-          {{ item.portMatch ? 'Port ok' : 'Port fail' }}
-        </div>
+    <h3 class="text-lg font-bold">Failed login attempts (live)</h3>
+    <div
+      v-for="(item, index) in failedLogins"
+      :key="index"
+      class="bg-white rounded-lg p-3 shadow-sm mb-2"
+    >
+      <h5 class="font-bold text-lg mb-2 text-red-500">
+        Tentative de connexion ({{ item.siteIp || 'failed' }}) - IP: {{ item.ip }}
+      </h5>
+
+      <div v-if="item.details" class="mt-2">
+        <p class="font-semibold">Détails techniques :</p>
+        <ul class="ml-4">
+          <li v-for="(detailValue, detailKey) in item.details" :key="detailKey">
+            {{ detailKey }}: <span :class="detailValue ? 'text-green-500' : 'text-red-500'">
+              {{ detailValue ? '✓' : '✗' }}
+            </span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

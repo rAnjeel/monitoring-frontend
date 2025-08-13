@@ -6,14 +6,15 @@ import HeaderNavbar from '../HeaderNavbar.vue'
 
 const routes = [
     {
-        path: '/',
-        name: 'CredensialSite',
-    },    
-    {
         path: '/failed-logins',
         name: 'FailedLoginLive',
+        component: FailedLoginLive
     }, 
-
+    {
+        path: '/',
+        name: 'CredensialSite',
+        component: CredentialSite
+    }    
 
 ];
 
