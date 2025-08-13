@@ -37,7 +37,6 @@ const formValues = ref({
   port: '',
 })
 
-// ButtonRenderer moved to ./components/renderers/ButtonRenderer.vue and used by grids
 
 const columnDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
@@ -125,10 +124,6 @@ const defaultColDef = {
     alignItems: 'center',
     whiteSpace: 'nowrap'
   },
-  enableRowGroup: true,
-  enablePivot: false,
-  enableValue: true,
-  suppressMenuHide: false
 }
 
 // Chargement des données
@@ -535,7 +530,6 @@ function clearSearch() {
               :columnDefs="columnMismatchDefs"
               :defaultColDef="defaultColDef"
               :getRowClass="rowClassRules"
-              :getContextMenuItems="getMismatchMenuItems"
               @cellClicked="onCellClickedContextMenu"
               @ready="onMismatchGridReady"
               @cellValueChanged="onCellValueChanged"
@@ -591,7 +585,6 @@ function clearSearch() {
             :columnDefs="columnDefs"
             :defaultColDef="defaultColDef"
             :getRowClass="rowClassRules"
-            :getContextMenuItems="getMainGridMenuItems"
             @cellClicked="onCellClickedContextMenu"
             @ready="onGridReady"
           />
