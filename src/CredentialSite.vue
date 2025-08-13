@@ -26,7 +26,6 @@ const error = ref(null)
 const showModal = ref(false)
 const modalCredential = ref({})
 const syncResult = ref(null)
-// removed mismatch details modal state (unused)
 const updatedRows = ref([])
 const gridRefMismatch = ref(null)
 const gridRef = ref(null)
@@ -38,7 +37,6 @@ const formValues = ref({
   port: '',
 })
 
-// ButtonRenderer moved to ./components/renderers/ButtonRenderer.vue and used by grids
 
 const columnDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
@@ -126,10 +124,6 @@ const defaultColDef = {
     alignItems: 'center',
     whiteSpace: 'nowrap'
   },
-  enableRowGroup: true,
-  enablePivot: false,
-  enableValue: true,
-  suppressMenuHide: false
 }
 
 // Chargement des données
@@ -209,7 +203,6 @@ function onCellClickedContextMenu(params) {
     return
   }
 
-  // Otherwise open the quick context menu
   const row = params?.data || {}
   contextMenuItemsRuntime.value = [
     {
@@ -257,7 +250,6 @@ function applySearch() {
   }, 150)
 }
 
-// Met à jour filteredCredentials quand les credentials changent
 watch(credentials, () => {
   applySearch()
 })
@@ -307,6 +299,7 @@ async function syncSites() {
       // Afficher un résumé
       showSyncSummary();
     }
+    await loadCredentials();
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -408,7 +401,7 @@ async function updateSelectedCredentials(formValues) {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
     showModal.value = false
-    await loadCredentials()
+    await syncSites()
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
   }
@@ -537,7 +530,6 @@ function clearSearch() {
               :columnDefs="columnMismatchDefs"
               :defaultColDef="defaultColDef"
               :getRowClass="rowClassRules"
-              :getContextMenuItems="getMismatchMenuItems"
               @cellClicked="onCellClickedContextMenu"
               @ready="onMismatchGridReady"
               @cellValueChanged="onCellValueChanged"
@@ -593,7 +585,6 @@ function clearSearch() {
             :columnDefs="columnDefs"
             :defaultColDef="defaultColDef"
             :getRowClass="rowClassRules"
-            :getContextMenuItems="getMainGridMenuItems"
             @cellClicked="onCellClickedContextMenu"
             @ready="onGridReady"
           />
