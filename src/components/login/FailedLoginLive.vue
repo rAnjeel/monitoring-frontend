@@ -7,7 +7,7 @@
       class="bg-white rounded-lg p-3 shadow-sm mb-2"
     >
       <h5 class="font-bold text-lg mb-2 text-red-500">
-        Tentative de connexion ({{ item.siteIp || 'failed' }}) - IP: {{ item.ip }}
+        Tentative de connexion ({{ item.siteIp || 'failed' }}) - IP: {{ item.ip }} via {{ item.communicationProtocol }}
       </h5>
 
       <div v-if="item.details" class="mt-2">
