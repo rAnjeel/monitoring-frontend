@@ -72,7 +72,17 @@ const columnDefs = ref([
       if (!params.value) return '';
       return formatDateFR(params.value); 
     }
+  },
+  {
+    field: 'toVerify', headerName: 'toVerify', flex: 3,
+    valueFormatter: (params) => {
+      if (params.value === null || params.value === undefined) return '';
+      return params.value ? 'not verified' : 'verified';
+    },
+    // Renderer personnalisé avec le style
+    cellRenderer: (p) => `<span class="code-chip">${p.value ? 'not verified' : 'verified'}</span>`
   }
+
 
 ])
 const columnMismatchDefs = ref([
