@@ -74,7 +74,6 @@ function handleClear() {
   fileRef.value = null
   error.value = ''
   if (fileInput.value) {
-    // reset native input
     fileInput.value.value = ''
   }
 }
