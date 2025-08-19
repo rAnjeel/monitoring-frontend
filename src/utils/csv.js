@@ -18,36 +18,53 @@ export function parseCSV(text) {
 
 // utils/exportCsv.js
 export function exportAgGridToCsv(columnDefs, rowData, fileName = 'export-credentials.csv') {
+  // Colonnes supplémentaires
+  const extraColumns = [
+    { field: 'siteUsernameMatch', headerName: 'siteUsernameMatch', sourceField: 'siteUsername' },
+    { field: 'siteUsernameMatch', headerName: 'siteUsernameMatch', sourceField: 'siteUsername' },
+    { field: 'sitePasswordMatch', headerName: 'sitePasswordMatch', sourceField: 'sitePassword' },
+    { field: 'sitePortMatch', headerName: 'sitePortMatch', sourceField: 'sitePort' }
+  ];
+
   // Préparer les en-têtes
-  const headers = columnDefs
-    .filter(col => col.field && !col.hide && !col.excludeFromExport)
-    .map(col => col.headerName || col.field)
-    .join(',');
+  const headers = [
+    ...columnDefs
+      .filter(col => col.field && !col.hide && !col.excludeFromExport)
+      .map(col => col.headerName || col.field),
+    ...extraColumns.map(col => col.headerName)
+  ].join(',');
 
   // Préparer les lignes de données
   const rows = rowData.map(row => {
-    return columnDefs
+    const baseValues = columnDefs
       .filter(col => col.field && !col.hide && !col.excludeFromExport)
       .map(col => {
-        // Gestion des valeurs spéciales (dates, objets, etc.)
         let value = row[col.field];
         if (value === null || value === undefined) return '';
         
         if (typeof value === 'object') {
-          if (value instanceof Date) {
-            return value.toISOString();
-          }
+          if (value instanceof Date) return value.toISOString();
           return JSON.stringify(value);
         }
         
-        // Échapper les virgules dans les chaînes
         if (typeof value === 'string') {
           return `"${value.replace(/"/g, '""')}"`;
         }
         
         return value;
-      })
-      .join(',');
+      });
+
+    const extraValues = extraColumns.map(col => {
+      let value = row[col.sourceField];
+      if (value === null || value === undefined) return '';
+      
+      if (typeof value === 'string') {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    });
+
+    return [...baseValues, ...extraValues].join(',');
   }).join('\n');
 
   // Combiner en contenu CSV

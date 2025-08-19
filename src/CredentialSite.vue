@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials } from './utils/credentials'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -26,7 +26,6 @@ const error = ref(null)
 const showModal = ref(false)
 const modalCredential = ref({})
 const syncResult = ref(null)
-// removed mismatch details modal state (unused)
 const updatedRows = ref([])
 const gridRefMismatch = ref(null)
 const gridRef = ref(null)
@@ -38,7 +37,6 @@ const formValues = ref({
   port: '',
 })
 
-// ButtonRenderer moved to ./components/renderers/ButtonRenderer.vue and used by grids
 
 const columnDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
@@ -74,7 +72,17 @@ const columnDefs = ref([
       if (!params.value) return '';
       return formatDateFR(params.value); 
     }
+  },
+  {
+    field: 'toVerify', headerName: 'toVerify', flex: 3,
+    valueFormatter: (params) => {
+      if (params.value === null || params.value === undefined) return '';
+      return params.value ? 'not verified' : 'verified';
+    },
+    // Renderer personnalisé avec le style
+    cellRenderer: (p) => `<span class="code-chip">${p.value ? 'not verified' : 'verified'}</span>`
   }
+
 
 ])
 const columnMismatchDefs = ref([
@@ -126,10 +134,6 @@ const defaultColDef = {
     alignItems: 'center',
     whiteSpace: 'nowrap'
   },
-  enableRowGroup: true,
-  enablePivot: false,
-  enableValue: true,
-  suppressMenuHide: false
 }
 
 // Chargement des données
@@ -143,9 +147,9 @@ const filteredCredentials = ref([])
 let searchTimeout = null
 const showExportModal = ref(false)
 const exportFileName = ref('export.csv')
-const totalSites = computed(() => credentials.value.length)
 const mismatchCount = computed(() => syncResult.value?.mismatches?.length || 0)
 const matchedCount = computed(() => syncResult.value?.matches?.length || 0)
+const totalSites = computed(() => matchedCount.value + mismatchCount.value)
 
 // Stats percentages for staggered tiles
 const usernamePct = computed(() => {
@@ -209,7 +213,6 @@ function onCellClickedContextMenu(params) {
     return
   }
 
-  // Otherwise open the quick context menu
   const row = params?.data || {}
   contextMenuItemsRuntime.value = [
     {
@@ -257,7 +260,6 @@ function applySearch() {
   }, 150)
 }
 
-// Met à jour filteredCredentials quand les credentials changent
 watch(credentials, () => {
   applySearch()
 })
@@ -302,11 +304,34 @@ async function syncSites() {
       noMismatchMessage.value = 'Aucun mismatch détecté. Tous les credentials sont synchronisés.';
       return;
     }
-    // Mise à jour visuelle
     if (gridRef.value?.api) {
-      // Afficher un résumé
       showSyncSummary();
     }
+    await loadCredentials();
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+    lastUpdated.value = new Date()
+  }
+}
+
+async function syncCredentialSitesToVerify() {
+  loading.value = true;
+  try {
+    syncResult.value = await syncSitesToVerify();    
+
+    if (
+      (!syncResult.value?.matches || syncResult.value.matches.length === 0) &&
+      (!syncResult.value?.mismatches || syncResult.value.mismatches.length === 0)
+    ) {
+      noMismatchMessage.value = 'Aucun mismatch détecté. Tous les credentials sont synchronisés.';
+      return;
+    }
+    if (gridRef.value?.api) {
+      showSyncSummary();
+    }
+    await loadCredentials();
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -408,7 +433,7 @@ async function updateSelectedCredentials(formValues) {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
     showModal.value = false
-    await loadCredentials()
+    // await syncSites()
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
   }
@@ -453,7 +478,12 @@ function clearSearch() {
         <button class="btn btn-primary" @click="syncSites" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           <i v-else class="bi bi-arrow-repeat me-2"></i>
-          Synchronize
+          Synchronize all sites
+        </button>
+        <button class="btn btn-primary" @click="syncCredentialSitesToVerify" :disabled="loading">
+          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <i v-else class="bi bi-arrow-repeat me-2"></i>
+          Synchronize sites to verify
         </button>
       </div>
     </div>
@@ -492,7 +522,7 @@ function clearSearch() {
             <div class="kpi-grid">
               <div class="kpi-card safe" style="transform: translateY(6px)">
                 <div>
-                  <div class="label">Total Sites</div>
+                  <div class="label">Total Sites Synced</div>
                   <div class="value">{{ totalSites }}</div>
                 </div>
                 <i class="bi bi-hdd-network text-primary" style="font-size: 1.5rem;"></i>
@@ -537,7 +567,6 @@ function clearSearch() {
               :columnDefs="columnMismatchDefs"
               :defaultColDef="defaultColDef"
               :getRowClass="rowClassRules"
-              :getContextMenuItems="getMismatchMenuItems"
               @cellClicked="onCellClickedContextMenu"
               @ready="onMismatchGridReady"
               @cellValueChanged="onCellValueChanged"
@@ -593,7 +622,6 @@ function clearSearch() {
             :columnDefs="columnDefs"
             :defaultColDef="defaultColDef"
             :getRowClass="rowClassRules"
-            :getContextMenuItems="getMainGridMenuItems"
             @cellClicked="onCellClickedContextMenu"
             @ready="onGridReady"
           />
