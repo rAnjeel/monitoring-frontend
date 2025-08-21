@@ -596,11 +596,17 @@ function onCustomMenuMismatchUpdateClick() {
     </div>
   </div>
 
-  <div v-if="loading" class="text-center my-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <div v-if="loading" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3); z-index: 2000;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-none bg-transparent">
+        <div class="alert alert-primary text-center mb-0" style="font-size:1.2rem;">
+          <div class="spinner-border text-primary mb-2" role="status" style="width:2.5rem; height:2.5rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div>Test SSH des sites en cours ...</div>
+        </div>
+      </div>
     </div>
-    <p>Loading credentials...</p>
   </div>
 
   <!-- Message d'erreur -->
