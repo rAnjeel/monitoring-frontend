@@ -188,8 +188,6 @@ const defaultColDefMismatch = {
   }
 }
 
-
-
 // Chargement des données
 onMounted(async () => {
   await loadCredentials()
@@ -222,34 +220,6 @@ const portPct = computed(() => {
   return Math.round((s.portMatches / s.total) * 100)
 })
 
-// // ===== Context menu helpers for AG Grid =====
-// function buildContextMenu(params) {
-//   const api = params?.api
-//   const selected = api?.getSelectedRows ? api.getSelectedRows() : []
-//   const currentData = params?.node?.data
-//   return [
-//     {
-//       name: 'Update this credential',
-//       action: () => {
-//         selectedRows.value = [currentData].filter(Boolean)
-//         showFormModal()
-//       }
-//     },
-//     {
-//       name: `Update selected (${selected?.length || 0})`,
-//       disabled: !selected || selected.length === 0,
-//       action: () => {
-//         selectedRows.value = selected || []
-//         showFormModal()
-//       }
-//     },
-//     'separator', 'copy', 'copyWithHeaders'
-//   ]
-// }
-
-// const getMainGridMenuItems = (params) => buildContextMenu(params)
-// const getMismatchMenuItems = (params) => buildContextMenu(params)
-
 // Runtime context menu for mismatch grid on simple click
 const showContextMenuRuntime = ref(false)
 const contextMenuPos = ref({ x: 0, y: 0 })
@@ -259,33 +229,10 @@ const contextMenuItemsRuntime = ref([])
 const showMismatchModal = ref(false)
 const currentMismatch = ref(null)
 
-function onCellClickedContextMenu(params) {
-  // If the details button was clicked, open the details modal
-  const clickedEl = params?.event?.target
-  if (clickedEl && (clickedEl.closest?.('button.detail-btn') || clickedEl.classList?.contains('detail-btn'))) {
-    handleViewDetails(params?.data?.id)
-    return
-  }
-
-  const row = params?.data || {}
-  contextMenuItemsRuntime.value = [
-    {
-      key: 'update',
-      label: 'Update this credential',
-      action: () => {
-        selectedRows.value = [row]
-        showFormModal()
-        showContextMenuRuntime.value = false
-      }
-    }
-  ]
-  contextMenuPos.value = { x: params.event?.clientX || 0, y: params.event?.clientY || 0 }
-  showContextMenuRuntime.value = true
-}
 
 function handleViewDetails(id) {
   if (!id) return
-  const item = syncResult.value?.mismatches?.find((m) => m.id === id)
+  const item = syncResult.value?.mismatches?.find((m) => m.id === id) 
   currentMismatch.value = item || null
   showMismatchModal.value = Boolean(item)
 }
@@ -425,13 +372,11 @@ function showSyncSummary() {
 const rowClassRules = (params) => (isMismatch(params.data) ? 'row-mismatch' : '')
 
 
-// Ajoute cet événement sur MismatchGrid
 function onSelectionChanged(event) {
   const api = event.api
   selectedRows.value = api.getSelectedRows() || []
-
-  // Si des lignes sont sélectionnées, on peut montrer le bouton Save
-  showSaveButton.value = selectedRows.value.length > 0
+  console.log("Lignes sélectionnées :", selectedRows.value)
+  console.log("=== LIGNES SÉLECTIONNÉES ===", selectedRows.value.length)
 }
 
 const showSaveButton = ref(false)
@@ -450,7 +395,7 @@ async function saveUpdates() {
 
 
 function getSelectedRows() {
-  const rows = (gridRefMismatch.value?.api ? gridRefMismatch.value.api : null)?.getSelectedRows?.() || []
+  const rows = selectedRows.value
   
   if (rows.length === 0) {
     console.log("Aucune ligne sélectionnée")
@@ -498,21 +443,39 @@ async function updateSelectedCredentials(formValues) {
 
 
 async function runTestSelectedCredentials() {
+  closeFormModal()
   if (!selectedRows.value.length) {
     console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
     return
   }
 
-  console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
-
+  loading.value = true
   try {
-    const result = await testCredentialsList(selectedRows.value)
-    console.log(`[runTestSelectedCredentials] Test SSH pour ${selectedRows.value.length} ligne(s)`, result)
-    showModal.value = false
+    console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
+
+    syncResult.value = await testCredentialsList(selectedRows.value)
+
+    if (!syncResult.value || syncResult.value.length === 0) {
+      noMismatchMessage.value = 'Aucun résultat de test disponible.'
+      return
+    }
+
+    console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
+
+    if (gridRef.value?.api) {
+      showSyncSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
+    }
+
+    await loadCredentials()
   } catch (err) {
+    error.value = err.message
     console.error('[runTestSelectedCredentials] Erreur lors du test de la liste de credentials :', err)
+  } finally {
+    loading.value = false
+    lastUpdated.value = new Date()
   }
 }
+
 
 
 function handleExport() {
@@ -545,10 +508,25 @@ function onCustomMenuDetailsClick() {
 }
 
 function onCustomMenuDeleteClick() {
-  const cell = window.cellClicked;
-  if (cell && cell.data && cell.data.id) {
-    // Ajoutez ici la logique de suppression selon vos besoins
-    alert('Suppression de la ligne ID: ' + cell.data.id);
+  getSelectedRows()
+  const rows = gridRef.value.getSelectedRows?.() || []
+  
+  if (rows.length > 0) {
+    selectedRows.value = rows
+
+    console.log("=== LIGNES SÉLECTIONNÉES ===")
+    rows.forEach((row, index) => {
+      console.log(`\nLigne ${index + 1}:`)
+      console.log(`ID: ${row.id}`)
+      console.log(`IP: ${row.Ip}`)
+      console.log(`Site: ${row.CodeSite}`)
+    })
+
+    console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+
+    showFormModal() 
+  } else {
+    console.log("Aucune ligne sélectionnée pour la suppression");
   }
   document.getElementById('customMenu').style.display = 'none';
 }
@@ -571,6 +549,26 @@ function onCustomMenuMismatchDetailsClick() {
 }
 
 function onCustomMenuMismatchDeleteClick() {
+  getSelectedRows()
+  const rows = (gridRefMismatch.value?.api ? gridRefMismatch.value.api : null)?.getSelectedRows?.() || []
+  
+  if (rows.length > 0) {
+    selectedRows.value = rows
+
+    console.log("=== LIGNES SÉLECTIONNÉES ===")
+    rows.forEach((row, index) => {
+      console.log(`\nLigne ${index + 1}:`)
+      console.log(`ID: ${row.id}`)
+      console.log(`IP: ${row.Ip}`)
+      console.log(`Site: ${row.CodeSite}`)
+    })
+
+    console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+
+    showFormModal() 
+  } else {
+    console.log("Aucune ligne sélectionnée pour la suppression");
+  }
   const cell = window.cellClicked;
   if (cell && cell.data && cell.data.id) {
     alert('Suppression de la ligne ID: ' + cell.data.id);
@@ -770,11 +768,13 @@ function onCustomMenuMismatchDeleteClick() {
     <div v-else class="col-12">
         <div class="card-body p-0">
           <MainGrid
+            ref="gridRef"
             :rowData="filteredCredentials"
             :columnDefs="columnDefs"
             :defaultColDef="defaultColDef"
             :getRowClass="rowClassRules"
             @ready="onGridReady"
+            @selection-changed="onSelectionChanged"
           />
       </div>
     </div>
@@ -857,7 +857,7 @@ function onCustomMenuMismatchDeleteClick() {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-success" @click="runTestSelectedCredentials">Test connexion</button>
+          <button class="btn btn-success" @click="runTestSelectedCredentials" :disabled="loading">Test connexion</button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
             Update selected lines
           </button>

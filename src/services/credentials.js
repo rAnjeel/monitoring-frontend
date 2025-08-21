@@ -206,13 +206,9 @@ export async function testCredentialsList(selectedRows) {
     }
 
     //Envoyer la liste complète pour test
-    const { data: testResults } = await api.post(`/credentials/sync/list`, credentialsData)
+    const response = await api.post(`/credentials/sync/list`, credentialsData)
 
-    return {
-      success: true,
-      updatedCount: testResults.length,
-      data: testResults
-    }
+    return response.data
   } catch (error) {
     console.error('[testCredentialsList] Erreur:', error)
     return {
