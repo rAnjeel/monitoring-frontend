@@ -188,6 +188,38 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
   }
 }
 
+export async function testCredentialsList(selectedRows) {
+  try {
+    if (!selectedRows || !selectedRows.length) {
+      return { success: false, error: 'Aucune ligne sélectionnée' }
+    }
+
+    const credentialsData = []
+
+    // Get tous les credentials
+    for (const row of selectedRows) {
+      const id = row.id
+      if (!id) continue
+
+      const { data: existing } = await api.get(`/credentials/${id}`)
+      credentialsData.push(existing)
+    }
+
+    //Envoyer la liste complète pour test
+    const response = await api.post(`/credentials/sync/list`, credentialsData)
+
+    return response.data
+  } catch (error) {
+    console.error('[testCredentialsList] Erreur:', error)
+    return {
+      success: false,
+      error: error.message || 'Échec du test de la liste de credentials'
+    }
+  }
+}
+
+
+
 export async function getHistoricCredentials() {
   try {
     console.log('[GetHistoricCredentials] Début de la récupération...');
