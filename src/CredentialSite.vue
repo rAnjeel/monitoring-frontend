@@ -152,19 +152,41 @@ const defaultColDef = {
     whiteSpace: 'nowrap'
   },
   onCellContextMenu: (event) => {
-      event.event.preventDefault(); // empêcher le menu par défaut du navigateur
-
       const menu = document.getElementById("customMenu");
-
       // Sauvegarde de la cellule cliquée
       window.cellClicked = event;
+      menu.style.display = "block";
+      menu.style.position = "absolute";
 
       // Positionner le menu au clic
       menu.style.left = event.event.pageX + "px";
       menu.style.top = event.event.pageY + "px";
-      menu.style.display = "block";
+      console.log('Context menu 1 opened at:', menu.style);
+
+      
     }
   }
+
+const defaultColDefMismatch = {
+  sortable: true,
+  filter: true,
+  resizable: true,
+  autoHeight: false,
+  wrapText: false,
+  cellStyle: { 
+    display: 'flex',
+    alignItems: 'center',
+    whiteSpace: 'nowrap'
+  },
+  onCellContextMenu: (event) => {
+    const menu = document.getElementById("customMenuMismatch");
+    window.cellClicked = event;
+    menu.style.left = event.event.clientX + "px";
+    menu.style.top = event.event.clientY + "px";
+    menu.style.display = "block";
+    console.log('Context menu 2 opened at:', menu.style);
+  }
+}
 
 
 
@@ -512,6 +534,8 @@ function clearSearch() {
   searchQuery.value = ''
   filteredCredentials.value = credentials.value
 }
+
+//Custom menu handlers
 function onCustomMenuDetailsClick() {
   const cell = window.cellClicked;
   if (cell && cell.data && cell.data.id) {
@@ -531,6 +555,27 @@ function onCustomMenuDeleteClick() {
 
 function onCustomMenuCloseClick() {
   document.getElementById('customMenu').style.display = 'none';
+}
+
+// Custom menu for mismatch grid
+function onCustomMenuMismatchCloseClick() {
+  document.getElementById('customMenuMismatch').style.display = 'none';
+}
+
+function onCustomMenuMismatchDetailsClick() {
+  const cell = window.cellClicked;
+  if (cell && cell.data && cell.data.id) {
+    handleViewDetails(cell.data.id);
+  }
+  document.getElementById('customMenuMismatch').style.display = 'none';
+}
+
+function onCustomMenuMismatchDeleteClick() {
+  const cell = window.cellClicked;
+  if (cell && cell.data && cell.data.id) {
+    alert('Suppression de la ligne ID: ' + cell.data.id);
+  }
+  document.getElementById('customMenuMismatch').style.display = 'none';
 }
 </script>
 
@@ -639,7 +684,7 @@ function onCustomMenuCloseClick() {
             <MismatchGrid
               :rowData="syncResult.mismatches"
               :columnDefs="columnMismatchDefs"
-              :defaultColDef="defaultColDef"
+              :defaultColDef="defaultColDefMismatch"
               :getRowClass="rowClassRules"
               @ready="onMismatchGridReady"
               @selectionChanged="onSelectionChanged"
@@ -665,6 +710,23 @@ function onCustomMenuCloseClick() {
     <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete" @click="onCustomMenuDeleteClick">Supprimer</button>
   </li>
 </ul>
+
+<!-- Custom menu pour mismatch -->
+<ul id="customMenuMismatch" 
+    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1;">
+  <li id="menu-close-mismatch" style="cursor:pointer; text-align:right;">
+    <button class="btn" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
+      <i class="bi bi-x"></i>
+    </button>
+  </li>
+  <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Voir détails</button>
+  </li>
+  <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchDeleteClick">Supprimer</button>
+  </li>
+</ul>
+
 
 
 <div class="p-3 rounded ">
