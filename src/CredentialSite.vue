@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify } from './services/credentials'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify, testCredentialsList } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -18,6 +18,18 @@ defineProps({
     default: () => []
   }
 })
+
+onMounted(() => {
+  document.addEventListener("contextmenu", disableContextMenu)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener("contextmenu", disableContextMenu)
+})
+
+function disableContextMenu(e) {
+  e.preventDefault()
+}
 
 const noMismatchMessage = ref('');
 const credentials = ref([])
@@ -39,6 +51,13 @@ const formValues = ref({
 
 
 const columnDefs = ref([
+  {
+    headerName: ' ',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
+  },
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
   { field: 'Ip', headerName: 'IP', flex: 5},
   { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
@@ -82,16 +101,14 @@ const columnDefs = ref([
     // Renderer personnalisé avec le style
     cellRenderer: (p) => `<span class="code-chip">${p.value ? 'not verified' : 'verified'}</span>`
   }
-
-
 ])
 const columnMismatchDefs = ref([
   {
     headerName: ' ',
-    checkboxSelection: true,       
-    headerCheckboxSelection: true, 
-    width: 50,
-    pinned: 'left'
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    pinned: 'left',
+    flex: 1,
   },
   { field: 'id', headerName: 'ID', flex: 2 },
   { field: 'Ip', headerName: 'IP', flex: 5},
@@ -134,6 +151,41 @@ const defaultColDef = {
     alignItems: 'center',
     whiteSpace: 'nowrap'
   },
+  onCellContextMenu: (event) => {
+      const menu = document.getElementById("customMenu");
+      // Sauvegarde de la cellule cliquée
+      window.cellClicked = event;
+      menu.style.display = "block";
+      menu.style.position = "absolute";
+
+      // Positionner le menu au clic
+      menu.style.left = event.event.pageX + "px";
+      menu.style.top = event.event.pageY + "px";
+      console.log('Context menu 1 opened at:', menu.style);
+
+      
+    }
+  }
+
+const defaultColDefMismatch = {
+  sortable: true,
+  filter: true,
+  resizable: true,
+  autoHeight: false,
+  wrapText: false,
+  cellStyle: { 
+    display: 'flex',
+    alignItems: 'center',
+    whiteSpace: 'nowrap'
+  },
+  onCellContextMenu: (event) => {
+    const menu = document.getElementById("customMenuMismatch");
+    window.cellClicked = event;
+    menu.style.left = event.event.clientX + "px";
+    menu.style.top = event.event.clientY + "px";
+    menu.style.display = "block";
+    console.log('Context menu 2 opened at:', menu.style);
+  }
 }
 
 // Chargement des données
@@ -168,34 +220,6 @@ const portPct = computed(() => {
   return Math.round((s.portMatches / s.total) * 100)
 })
 
-// ===== Context menu helpers for AG Grid =====
-function buildContextMenu(params) {
-  const api = params?.api
-  const selected = api?.getSelectedRows ? api.getSelectedRows() : []
-  const currentData = params?.node?.data
-  return [
-    {
-      name: 'Update this credential',
-      action: () => {
-        selectedRows.value = [currentData].filter(Boolean)
-        showFormModal()
-      }
-    },
-    {
-      name: `Update selected (${selected?.length || 0})`,
-      disabled: !selected || selected.length === 0,
-      action: () => {
-        selectedRows.value = selected || []
-        showFormModal()
-      }
-    },
-    'separator', 'copy', 'copyWithHeaders'
-  ]
-}
-
-const getMainGridMenuItems = (params) => buildContextMenu(params)
-const getMismatchMenuItems = (params) => buildContextMenu(params)
-
 // Runtime context menu for mismatch grid on simple click
 const showContextMenuRuntime = ref(false)
 const contextMenuPos = ref({ x: 0, y: 0 })
@@ -205,40 +229,16 @@ const contextMenuItemsRuntime = ref([])
 const showMismatchModal = ref(false)
 const currentMismatch = ref(null)
 
-function onCellClickedContextMenu(params) {
-  // If the details button was clicked, open the details modal
-  const clickedEl = params?.event?.target
-  if (clickedEl && (clickedEl.closest?.('button.detail-btn') || clickedEl.classList?.contains('detail-btn'))) {
-    handleViewDetails(params?.data?.id)
-    return
-  }
-
-  const row = params?.data || {}
-  contextMenuItemsRuntime.value = [
-    {
-      key: 'update',
-      label: 'Update this credential',
-      action: () => {
-        selectedRows.value = [row]
-        showFormModal()
-        showContextMenuRuntime.value = false
-      }
-    }
-  ]
-  contextMenuPos.value = { x: params.event?.clientX || 0, y: params.event?.clientY || 0 }
-  showContextMenuRuntime.value = true
-}
 
 function handleViewDetails(id) {
   if (!id) return
-  const item = syncResult.value?.mismatches?.find((m) => m.id === id)
+  const item = syncResult.value?.mismatches?.find((m) => m.id === id) 
   currentMismatch.value = item || null
   showMismatchModal.value = Boolean(item)
+  onCustomMenuCloseClick()
 }
 
 document.addEventListener('click', () => { showContextMenuRuntime.value = false })
-
-
 
 function applySearch() {
   if (searchTimeout) clearTimeout(searchTimeout)
@@ -373,12 +373,15 @@ function showSyncSummary() {
 const rowClassRules = (params) => (isMismatch(params.data) ? 'row-mismatch' : '')
 
 
-function onCellValueChanged(event) {
-  const row = event.data
-  if (!updatedRows.value.find(r => r.id === row.id)) {
-    updatedRows.value.push({ ...row })
-  }
+function onSelectionChanged(event) {
+  const api = event.api
+  selectedRows.value = api.getSelectedRows() || []
+  console.log("Lignes sélectionnées :", selectedRows.value)
+  console.log("=== LIGNES SÉLECTIONNÉES ===", selectedRows.value.length)
 }
+
+const showSaveButton = ref(false)
+
 
 async function saveUpdates() {
   try {
@@ -393,7 +396,7 @@ async function saveUpdates() {
 
 
 function getSelectedRows() {
-  const rows = (gridRefMismatch.value?.api ? gridRefMismatch.value.api : null)?.getSelectedRows?.() || []
+  const rows = selectedRows.value
   
   if (rows.length === 0) {
     console.log("Aucune ligne sélectionnée")
@@ -432,12 +435,51 @@ async function updateSelectedCredentials(formValues) {
   try {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
-    showModal.value = false
+    onCustomMenuCloseClick()
+    alert('Mise à jour réussie')
     // await syncSites()
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
   }
 }
+
+
+async function runTestSelectedCredentials() {
+  closeFormModal()
+  onCustomMenuCloseClick()
+  if (!selectedRows.value.length) {
+    console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
+    return
+  }
+
+  loading.value = true
+  try {
+    console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
+
+    syncResult.value = await testCredentialsList(selectedRows.value)
+
+    if (!syncResult.value || syncResult.value.length === 0) {
+      noMismatchMessage.value = 'Aucun résultat de test disponible.'
+      return
+    }
+
+    console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
+
+    if (gridRef.value?.api) {
+      showSyncSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
+    }
+
+    await loadCredentials()
+  } catch (err) {
+    error.value = err.message
+    console.error('[runTestSelectedCredentials] Erreur lors du test de la liste de credentials :', err)
+  } finally {
+    loading.value = false
+    lastUpdated.value = new Date()
+  }
+}
+
+
 
 function handleExport() {
   showExportModal.value = true
@@ -459,6 +501,71 @@ function clearSearch() {
   filteredCredentials.value = credentials.value
 }
 
+function onCustomMenuUpdateClick() {
+  getSelectedRows()
+  const rows = gridRef.value.getSelectedRows?.() || []
+  
+  if (rows.length > 0) {
+    selectedRows.value = rows
+
+    console.log("=== LIGNES SÉLECTIONNÉES ===")
+    rows.forEach((row, index) => {
+      console.log(`\nLigne ${index + 1}:`)
+      console.log(`ID: ${row.id}`)
+      console.log(`IP: ${row.Ip}`)
+      console.log(`Site: ${row.CodeSite}`)
+    })
+
+    console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+
+    showFormModal() 
+  } else {
+    console.log("Aucune ligne sélectionnée pour la synchronisation");
+  }
+  document.getElementById('customMenu').style.display = 'none';
+}
+
+function onCustomMenuCloseClick() {
+  document.getElementById('customMenu').style.display = 'none';
+}
+
+// Custom menu for mismatch grid
+function onCustomMenuMismatchCloseClick() {
+  document.getElementById('customMenuMismatch').style.display = 'none';
+}
+
+function onCustomMenuMismatchDetailsClick() {
+  const cell = window.cellClicked;
+  if (cell && cell.data && cell.data.id) {
+    handleViewDetails(cell.data.id);
+  }
+  document.getElementById('customMenuMismatch').style.display = 'none';
+}
+
+function onCustomMenuMismatchUpdateClick() {
+  getSelectedRows()
+  onCustomMenuMismatchCloseClick()
+
+  const rows = (gridRefMismatch.value?.api ? gridRefMismatch.value.api : null)?.getSelectedRows?.() || []
+  
+  if (rows.length > 0) {
+    selectedRows.value = rows
+
+    console.log("=== LIGNES SÉLECTIONNÉES ===")
+    rows.forEach((row, index) => {
+      console.log(`\nLigne ${index + 1}:`)
+      console.log(`ID: ${row.id}`)
+      console.log(`IP: ${row.Ip}`)
+      console.log(`Site: ${row.CodeSite}`)
+    })
+
+    console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+
+    showFormModal() 
+  } else {
+    console.log("Aucune ligne sélectionnée pour la synchronisation");
+  }
+}
 </script>
 
 <template>
@@ -489,11 +596,17 @@ function clearSearch() {
     </div>
   </div>
 
-  <div v-if="loading" class="text-center my-4">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <div v-if="loading" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3); z-index: 2000;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-none bg-transparent">
+        <div class="alert alert-primary text-center mb-0" style="font-size:1.2rem;">
+          <div class="spinner-border text-primary mb-2" role="status" style="width:2.5rem; height:2.5rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div>Test SSH des sites en cours ...</div>
+        </div>
+      </div>
     </div>
-    <p>Loading credentials...</p>
   </div>
 
   <!-- Message d'erreur -->
@@ -555,27 +668,64 @@ function clearSearch() {
             <button class="btn btn-m btn-primary" @click="getSelectedRows">
               <i class="bi bi-pencil-square">Update Credentials</i>
             </button>
-            <div v-if="updatedRows.length" class="text-end mt-3 justify-content-center m-3">
-              <button class="btn btn-success" @click="saveUpdates">
-                <i class="bi bi-save"></i> Save {{ updatedRows.length }} modification(s)
-              </button>
-            </div>
+          <div class="text-end mt-3 justify-content-center m-3" v-if="showSaveButton">
+            <button class="btn btn-success" @click="saveUpdates">
+              <i class="bi bi-save"></i> Save {{ selectedRows.length }} modification(s)
+            </button>
+          </div>
+
           </div>
           <div class="mismatch-grid-container" style="max-height: 380px; overflow: auto;">
             <MismatchGrid
               :rowData="syncResult.mismatches"
               :columnDefs="columnMismatchDefs"
-              :defaultColDef="defaultColDef"
+              :defaultColDef="defaultColDefMismatch"
               :getRowClass="rowClassRules"
-              @cellClicked="onCellClickedContextMenu"
               @ready="onMismatchGridReady"
-              @cellValueChanged="onCellValueChanged"
+              @selectionChanged="onSelectionChanged"
             />
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Menu contextuel custom -->
+<ul id="customMenu" 
+    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000;">
+  <li id="menu-close" style="cursor:pointer; text-align:right;">
+    <button class="btn" type="button" id="btn-close-menu" @click="onCustomMenuCloseClick">
+      <i class="bi bi-x"></i>
+    </button>
+  </li>
+  <li id="menu-delete" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">Update</button>
+  </li>
+  <li id="menu-sync" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
+  </li>
+</ul>
+
+<!-- Custom menu pour mismatch -->
+<ul id="customMenuMismatch" 
+    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1;">
+  <li id="menu-close-mismatch" style="cursor:pointer; text-align:right;">
+    <button class="btn" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
+      <i class="bi bi-x"></i>
+    </button>
+  </li>
+  <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Show details</button>
+  </li>
+  <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">Update</button>
+  </li>
+  <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
+  </li>
+</ul>
+
+
 
 <div class="p-3 rounded ">
   <div class="card mt-3 p-4">
@@ -618,12 +768,13 @@ function clearSearch() {
     <div v-else class="col-12">
         <div class="card-body p-0">
           <MainGrid
+            ref="gridRef"
             :rowData="filteredCredentials"
             :columnDefs="columnDefs"
             :defaultColDef="defaultColDef"
             :getRowClass="rowClassRules"
-            @cellClicked="onCellClickedContextMenu"
             @ready="onGridReady"
+            @selection-changed="onSelectionChanged"
           />
       </div>
     </div>
@@ -706,10 +857,13 @@ function clearSearch() {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
+          <button class="btn btn-success" @click="runTestSelectedCredentials()">
+            Test
+          </button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
             Update selected lines
           </button>
+          <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
         </div>
       </div>
     </div>
