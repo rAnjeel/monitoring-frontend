@@ -22,9 +22,6 @@ function onCellClicked(params) {
   emit('cellClicked', params)
 }
 
-function onCellValueChanged(params) {
-  emit('cellValueChanged', params)
-}
 </script>
 
 <template>
@@ -38,11 +35,13 @@ function onCellValueChanged(params) {
     :getRowClass="props.getRowClass"
     :rowHeight="40"
     :headerHeight="44"
+    rowSelection="multiple"
+    :rowMultiSelectWithClick="true"
+    :suppressRowClickSelection="true"
     :getContextMenuItems="props.getContextMenuItems"
     suppressCellFocus="true"
     @cellClicked="onCellClicked"
     @grid-ready="onGridReady"
-    @cell-value-changed="onCellValueChanged"
   />
 </template>
 

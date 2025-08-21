@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify } from './services/credentials'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify, testCredentialsList } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -39,6 +39,13 @@ const formValues = ref({
 
 
 const columnDefs = ref([
+  {
+    headerName: ' ',
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    width: 50,
+    pinned: 'left'
+  },
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
   { field: 'Ip', headerName: 'IP', flex: 5},
   { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
@@ -88,10 +95,10 @@ const columnDefs = ref([
 const columnMismatchDefs = ref([
   {
     headerName: ' ',
-    checkboxSelection: true,       
-    headerCheckboxSelection: true, 
-    width: 50,
-    pinned: 'left'
+    checkboxSelection: true,
+    headerCheckboxSelection: true,
+    pinned: 'left',
+    flex: 1,
   },
   { field: 'id', headerName: 'ID', flex: 2 },
   { field: 'Ip', headerName: 'IP', flex: 5},
@@ -373,12 +380,17 @@ function showSyncSummary() {
 const rowClassRules = (params) => (isMismatch(params.data) ? 'row-mismatch' : '')
 
 
-function onCellValueChanged(event) {
-  const row = event.data
-  if (!updatedRows.value.find(r => r.id === row.id)) {
-    updatedRows.value.push({ ...row })
-  }
+// Ajoute cet événement sur MismatchGrid
+function onSelectionChanged(event) {
+  const api = event.api
+  selectedRows.value = api.getSelectedRows() || []
+
+  // Si des lignes sont sélectionnées, on peut montrer le bouton Save
+  showSaveButton.value = selectedRows.value.length > 0
 }
+
+const showSaveButton = ref(false)
+
 
 async function saveUpdates() {
   try {
@@ -438,6 +450,25 @@ async function updateSelectedCredentials(formValues) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
   }
 }
+
+
+async function runTestSelectedCredentials() {
+  if (!selectedRows.value.length) {
+    console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
+    return
+  }
+
+  console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
+
+  try {
+    const result = await testCredentialsList(selectedRows.value)
+    console.log(`[runTestSelectedCredentials] Test SSH pour ${selectedRows.value.length} ligne(s)`, result)
+    showModal.value = false
+  } catch (err) {
+    console.error('[runTestSelectedCredentials] Erreur lors du test de la liste de credentials :', err)
+  }
+}
+
 
 function handleExport() {
   showExportModal.value = true
@@ -555,11 +586,12 @@ function clearSearch() {
             <button class="btn btn-m btn-primary" @click="getSelectedRows">
               <i class="bi bi-pencil-square">Update Credentials</i>
             </button>
-            <div v-if="updatedRows.length" class="text-end mt-3 justify-content-center m-3">
-              <button class="btn btn-success" @click="saveUpdates">
-                <i class="bi bi-save"></i> Save {{ updatedRows.length }} modification(s)
-              </button>
-            </div>
+          <div class="text-end mt-3 justify-content-center m-3" v-if="showSaveButton">
+            <button class="btn btn-success" @click="saveUpdates">
+              <i class="bi bi-save"></i> Save {{ selectedRows.length }} modification(s)
+            </button>
+          </div>
+
           </div>
           <div class="mismatch-grid-container" style="max-height: 380px; overflow: auto;">
             <MismatchGrid
@@ -569,7 +601,7 @@ function clearSearch() {
               :getRowClass="rowClassRules"
               @cellClicked="onCellClickedContextMenu"
               @ready="onMismatchGridReady"
-              @cellValueChanged="onCellValueChanged"
+              @selectionChanged="onSelectionChanged"
             />
           </div>
         </div>
@@ -706,10 +738,11 @@ function clearSearch() {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
+          <button class="btn btn-success" @click="runTestSelectedCredentials">Test connexion</button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
             Update selected lines
           </button>
+          <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
         </div>
       </div>
     </div>
