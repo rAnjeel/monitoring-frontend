@@ -435,8 +435,8 @@ async function updateSelectedCredentials(formValues) {
   try {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
-    closeFormModal()
     onCustomMenuCloseClick()
+    alert('Mise à jour réussie')
     // await syncSites()
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
@@ -501,16 +501,7 @@ function clearSearch() {
   filteredCredentials.value = credentials.value
 }
 
-//Custom menu handlers
-function onCustomMenuDetailsClick() {
-  const cell = window.cellClicked;
-  if (cell && cell.data && cell.data.id) {
-    handleViewDetails(cell.data.id);
-  }
-  document.getElementById('customMenu').style.display = 'none';
-}
-
-function onCustomMenuDeleteClick() {
+function onCustomMenuUpdateClick() {
   getSelectedRows()
   const rows = gridRef.value.getSelectedRows?.() || []
   
@@ -529,7 +520,7 @@ function onCustomMenuDeleteClick() {
 
     showFormModal() 
   } else {
-    console.log("Aucune ligne sélectionnée pour la suppression");
+    console.log("Aucune ligne sélectionnée pour la synchronisation");
   }
   document.getElementById('customMenu').style.display = 'none';
 }
@@ -551,8 +542,10 @@ function onCustomMenuMismatchDetailsClick() {
   document.getElementById('customMenuMismatch').style.display = 'none';
 }
 
-function onCustomMenuMismatchDeleteClick() {
+function onCustomMenuMismatchUpdateClick() {
   getSelectedRows()
+  onCustomMenuMismatchCloseClick()
+
   const rows = (gridRefMismatch.value?.api ? gridRefMismatch.value.api : null)?.getSelectedRows?.() || []
   
   if (rows.length > 0) {
@@ -570,13 +563,8 @@ function onCustomMenuMismatchDeleteClick() {
 
     showFormModal() 
   } else {
-    console.log("Aucune ligne sélectionnée pour la suppression");
+    console.log("Aucune ligne sélectionnée pour la synchronisation");
   }
-  const cell = window.cellClicked;
-  if (cell && cell.data && cell.data.id) {
-    alert('Suppression de la ligne ID: ' + cell.data.id);
-  }
-  document.getElementById('customMenuMismatch').style.display = 'none';
 }
 </script>
 
@@ -704,8 +692,11 @@ function onCustomMenuMismatchDeleteClick() {
       <i class="bi bi-x"></i>
     </button>
   </li>
-  <li>
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="loading">Synchronize</button>
+  <li id="menu-delete" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">Update</button>
+  </li>
+  <li id="menu-sync" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
   </li>
 </ul>
 
@@ -721,10 +712,10 @@ function onCustomMenuMismatchDeleteClick() {
     <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Show details</button>
   </li>
   <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchDeleteClick">Update</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">Update</button>
   </li>
-  <li>
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="loading">Synchronize</button>
+  <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
   </li>
 </ul>
 
@@ -860,6 +851,9 @@ function onCustomMenuMismatchDeleteClick() {
           </div>
         </div>
         <div class="modal-footer">
+          <button class="btn btn-success" @click="runTestSelectedCredentials()">
+            Test
+          </button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
             Update selected lines
           </button>
