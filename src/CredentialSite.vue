@@ -235,6 +235,7 @@ function handleViewDetails(id) {
   const item = syncResult.value?.mismatches?.find((m) => m.id === id) 
   currentMismatch.value = item || null
   showMismatchModal.value = Boolean(item)
+  onCustomMenuCloseClick()
 }
 
 document.addEventListener('click', () => { showContextMenuRuntime.value = false })
@@ -434,7 +435,8 @@ async function updateSelectedCredentials(formValues) {
   try {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
-    showModal.value = false
+    closeFormModal()
+    onCustomMenuCloseClick()
     // await syncSites()
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
@@ -444,6 +446,7 @@ async function updateSelectedCredentials(formValues) {
 
 async function runTestSelectedCredentials() {
   closeFormModal()
+  onCustomMenuCloseClick()
   if (!selectedRows.value.length) {
     console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
     return
@@ -701,11 +704,8 @@ function onCustomMenuMismatchDeleteClick() {
       <i class="bi bi-x"></i>
     </button>
   </li>
-  <li id="menu-details" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details" @click="onCustomMenuDetailsClick">Voir détails</button>
-  </li>
-  <li id="menu-delete" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete" @click="onCustomMenuDeleteClick">Supprimer</button>
+  <li>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="loading">Synchronize</button>
   </li>
 </ul>
 
@@ -718,10 +718,13 @@ function onCustomMenuMismatchDeleteClick() {
     </button>
   </li>
   <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Voir détails</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Show details</button>
   </li>
   <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchDeleteClick">Supprimer</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchDeleteClick">Update</button>
+  </li>
+  <li>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="loading">Synchronize</button>
   </li>
 </ul>
 
@@ -857,7 +860,6 @@ function onCustomMenuMismatchDeleteClick() {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-success" @click="runTestSelectedCredentials" :disabled="loading">Test connexion</button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
             Update selected lines
           </button>
