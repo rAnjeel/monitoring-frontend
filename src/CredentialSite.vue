@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify, testCredentialsList } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
@@ -18,6 +18,18 @@ defineProps({
     default: () => []
   }
 })
+
+onMounted(() => {
+  document.addEventListener("contextmenu", disableContextMenu)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener("contextmenu", disableContextMenu)
+})
+
+function disableContextMenu(e) {
+  e.preventDefault()
+}
 
 const noMismatchMessage = ref('');
 const credentials = ref([])
@@ -89,8 +101,6 @@ const columnDefs = ref([
     // Renderer personnalisé avec le style
     cellRenderer: (p) => `<span class="code-chip">${p.value ? 'not verified' : 'verified'}</span>`
   }
-
-
 ])
 const columnMismatchDefs = ref([
   {
@@ -141,7 +151,22 @@ const defaultColDef = {
     alignItems: 'center',
     whiteSpace: 'nowrap'
   },
-}
+  onCellContextMenu: (event) => {
+      event.event.preventDefault(); // empêcher le menu par défaut du navigateur
+
+      const menu = document.getElementById("customMenu");
+
+      // Sauvegarde de la cellule cliquée
+      window.cellClicked = event;
+
+      // Positionner le menu au clic
+      menu.style.left = event.event.pageX + "px";
+      menu.style.top = event.event.pageY + "px";
+      menu.style.display = "block";
+    }
+  }
+
+
 
 // Chargement des données
 onMounted(async () => {
@@ -175,33 +200,33 @@ const portPct = computed(() => {
   return Math.round((s.portMatches / s.total) * 100)
 })
 
-// ===== Context menu helpers for AG Grid =====
-function buildContextMenu(params) {
-  const api = params?.api
-  const selected = api?.getSelectedRows ? api.getSelectedRows() : []
-  const currentData = params?.node?.data
-  return [
-    {
-      name: 'Update this credential',
-      action: () => {
-        selectedRows.value = [currentData].filter(Boolean)
-        showFormModal()
-      }
-    },
-    {
-      name: `Update selected (${selected?.length || 0})`,
-      disabled: !selected || selected.length === 0,
-      action: () => {
-        selectedRows.value = selected || []
-        showFormModal()
-      }
-    },
-    'separator', 'copy', 'copyWithHeaders'
-  ]
-}
+// // ===== Context menu helpers for AG Grid =====
+// function buildContextMenu(params) {
+//   const api = params?.api
+//   const selected = api?.getSelectedRows ? api.getSelectedRows() : []
+//   const currentData = params?.node?.data
+//   return [
+//     {
+//       name: 'Update this credential',
+//       action: () => {
+//         selectedRows.value = [currentData].filter(Boolean)
+//         showFormModal()
+//       }
+//     },
+//     {
+//       name: `Update selected (${selected?.length || 0})`,
+//       disabled: !selected || selected.length === 0,
+//       action: () => {
+//         selectedRows.value = selected || []
+//         showFormModal()
+//       }
+//     },
+//     'separator', 'copy', 'copyWithHeaders'
+//   ]
+// }
 
-const getMainGridMenuItems = (params) => buildContextMenu(params)
-const getMismatchMenuItems = (params) => buildContextMenu(params)
+// const getMainGridMenuItems = (params) => buildContextMenu(params)
+// const getMismatchMenuItems = (params) => buildContextMenu(params)
 
 // Runtime context menu for mismatch grid on simple click
 const showContextMenuRuntime = ref(false)
@@ -244,8 +269,6 @@ function handleViewDetails(id) {
 }
 
 document.addEventListener('click', () => { showContextMenuRuntime.value = false })
-
-
 
 function applySearch() {
   if (searchTimeout) clearTimeout(searchTimeout)
@@ -489,7 +512,26 @@ function clearSearch() {
   searchQuery.value = ''
   filteredCredentials.value = credentials.value
 }
+function onCustomMenuDetailsClick() {
+  const cell = window.cellClicked;
+  if (cell && cell.data && cell.data.id) {
+    handleViewDetails(cell.data.id);
+  }
+  document.getElementById('customMenu').style.display = 'none';
+}
 
+function onCustomMenuDeleteClick() {
+  const cell = window.cellClicked;
+  if (cell && cell.data && cell.data.id) {
+    // Ajoutez ici la logique de suppression selon vos besoins
+    alert('Suppression de la ligne ID: ' + cell.data.id);
+  }
+  document.getElementById('customMenu').style.display = 'none';
+}
+
+function onCustomMenuCloseClick() {
+  document.getElementById('customMenu').style.display = 'none';
+}
 </script>
 
 <template>
@@ -599,7 +641,6 @@ function clearSearch() {
               :columnDefs="columnMismatchDefs"
               :defaultColDef="defaultColDef"
               :getRowClass="rowClassRules"
-              @cellClicked="onCellClickedContextMenu"
               @ready="onMismatchGridReady"
               @selectionChanged="onSelectionChanged"
             />
@@ -608,6 +649,23 @@ function clearSearch() {
       </div>
     </div>
   </div>
+
+  <!-- Menu contextuel custom -->
+<ul id="customMenu" 
+    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000;">
+  <li id="menu-close" style="cursor:pointer; text-align:right;">
+    <button class="btn" type="button" id="btn-close-menu" @click="onCustomMenuCloseClick">
+      <i class="bi bi-x"></i>
+    </button>
+  </li>
+  <li id="menu-details" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details" @click="onCustomMenuDetailsClick">Voir détails</button>
+  </li>
+  <li id="menu-delete" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete" @click="onCustomMenuDeleteClick">Supprimer</button>
+  </li>
+</ul>
+
 
 <div class="p-3 rounded ">
   <div class="card mt-3 p-4">
@@ -654,7 +712,6 @@ function clearSearch() {
             :columnDefs="columnDefs"
             :defaultColDef="defaultColDef"
             :getRowClass="rowClassRules"
-            @cellClicked="onCellClickedContextMenu"
             @ready="onGridReady"
           />
       </div>
