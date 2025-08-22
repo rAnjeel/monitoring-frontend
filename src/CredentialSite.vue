@@ -684,19 +684,19 @@ function onCustomMenuMismatchUpdateClick() {
 
   <!-- Menu contextuel custom -->
 <ul id="customMenu" 
-    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000;">
+    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000; border-radius:10px;">
   <li id="menu-close" style="cursor:pointer; text-align:right;">
     <button class="btn" type="button" id="btn-close-menu" @click="onCustomMenuCloseClick">
       <i class="bi bi-x"></i>
     </button>
   </li>
   <li id="menu-update" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-update" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-update" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length" style="border-radius:6px;">
       <i class="bi bi-pencil-square me-2"></i> Update
     </button>
   </li>
   <li id="menu-sync" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading" style="border-radius:6px;">
       <i class="bi bi-arrow-repeat me-2"></i> Synchronize
     </button>
   </li>
@@ -704,24 +704,24 @@ function onCustomMenuMismatchUpdateClick() {
 
 <!-- Custom menu pour mismatch -->
 <ul id="customMenuMismatch" 
-    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1;">
+    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1; border-radius:10px;">
   <li id="menu-close-mismatch" style="cursor:pointer; text-align:right;">
     <button class="btn" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
       <i class="bi bi-x"></i>
     </button>
   </li>
   <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick" style="border-radius:6px;">
       <i class="bi bi-info-circle me-2"></i> details
     </button>
   </li>
   <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length" style="border-radius:6px;">
       <i class="bi bi-pencil-square me-2"></i> Update
     </button>
   </li>
   <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading" style="border-radius:6px;">
       <i class="bi bi-arrow-repeat me-2"></i> Synchronize
     </button>
   </li>
