@@ -26,7 +26,7 @@
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <router-link to="/" class="nav-link active" href="#"><i class="bi bi-house-door"></i>Accueil</router-link>
+            <router-link to="/" class="nav-link active" href="#"><i class="bi bi-house-door"></i>Home</router-link>
           </li>
           <li class="nav-item">
             <router-link to="/failed-logins" class="nav-link" href="#"><i class="bi bi-server"></i>Logs</router-link>>
@@ -35,10 +35,10 @@
             <router-link to="/import-csv" class="nav-link" href="#"><i class="bi bi-arrow-down"></i>Import CSV</router-link>>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><i class="bi bi-gear"></i> Paramètres</a>
+            <a class="nav-link" href="#"><i class="bi bi-gear"></i> Settings</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-danger" href="#"><i class="bi bi-box-arrow-right"></i> Déconnexion</a>
+            <a class="nav-link text-danger" href="#"><i class="bi bi-box-arrow-right"></i> Disconnect</a>
           </li>
         </ul>
       </div>
