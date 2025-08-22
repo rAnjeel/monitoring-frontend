@@ -8,8 +8,7 @@
       <router-link to="/">Accueil</router-link> |
       <router-link to="/failed-logins">Failed Logins</router-link>
     </nav> -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase align-items-center">
-
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase align-items-center sticky-top" style="z-index: 1030;">
       <div class="collapse navbar-collapse d-flex align-items-center" id="navbarContent">
       <a class="navbar-brand fw-bold d-flex align-items-center" href="#">Monitoring</a>
 
