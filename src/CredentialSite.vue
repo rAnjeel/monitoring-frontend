@@ -690,11 +690,15 @@ function onCustomMenuMismatchUpdateClick() {
       <i class="bi bi-x"></i>
     </button>
   </li>
-  <li id="menu-delete" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">Update</button>
+  <li id="menu-update" style="padding:5px; cursor:pointer;">
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-update" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
+      <i class="bi bi-pencil-square me-2"></i> Update
+    </button>
   </li>
   <li id="menu-sync" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+      <i class="bi bi-arrow-repeat me-2"></i> Synchronize
+    </button>
   </li>
 </ul>
 
@@ -707,13 +711,19 @@ function onCustomMenuMismatchUpdateClick() {
     </button>
   </li>
   <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Show details</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
+      <i class="bi bi-info-circle me-2"></i> details
+    </button>
   </li>
   <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">Update</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
+      <i class="bi bi-pencil-square me-2"></i> Update
+    </button>
   </li>
   <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+      <i class="bi bi-arrow-repeat me-2"></i> Synchronize
+    </button>
   </li>
 </ul>
 
