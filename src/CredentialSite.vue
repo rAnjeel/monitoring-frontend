@@ -108,7 +108,7 @@ const columnMismatchDefs = ref([
     checkboxSelection: true,
     headerCheckboxSelection: true,
     pinned: 'left',
-    flex: 1,
+    width: 50
   },
   { field: 'id', headerName: 'ID', flex: 2 },
   { field: 'Ip', headerName: 'IP', flex: 5},

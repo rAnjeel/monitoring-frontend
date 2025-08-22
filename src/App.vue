@@ -8,8 +8,10 @@
       <router-link to="/">Accueil</router-link> |
       <router-link to="/failed-logins">Failed Logins</router-link>
     </nav> -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase">
-      <a class="navbar-brand fw-bold" href="#">Monitoring</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase align-items-center">
+
+      <div class="collapse navbar-collapse d-flex align-items-center" id="navbarContent">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="#">Monitoring</a>
 
       <button
         class="navbar-toggler"
@@ -23,24 +25,23 @@
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <router-link to="/" class="nav-link active" href="#"><i class="bi bi-house-door"></i>Home</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/failed-logins" class="nav-link" href="#"><i class="bi bi-server"></i>Logs</router-link>>
-          </li>
-          <li class="nav-item">
-            <router-link to="/import-csv" class="nav-link" href="#"><i class="bi bi-arrow-down"></i>Import CSV</router-link>>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#"><i class="bi bi-gear"></i> Settings</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-danger" href="#"><i class="bi bi-box-arrow-right"></i> Disconnect</a>
-          </li>
-        </ul>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center">
+        <li class="nav-item d-flex align-items-center">
+        <router-link to="/" class="nav-link active d-flex align-items-center" href="#"><i class="bi bi-house-door"></i> <span class="ms-1">Home</span></router-link>
+        </li>
+        <li class="nav-item d-flex align-items-center">
+        <router-link to="/failed-logins" class="nav-link d-flex align-items-center" href="#"><i class="bi bi-server"></i> <span class="ms-1">Logs</span></router-link>
+        </li>
+        <li class="nav-item d-flex align-items-center">
+        <router-link to="/import-csv" class="nav-link d-flex align-items-center" href="#"><i class="bi bi-arrow-down"></i> <span class="ms-1">Import CSV</span></router-link>
+        </li>
+        <li class="nav-item d-flex align-items-center">
+        <a class="nav-link d-flex align-items-center" href="#"><i class="bi bi-gear"></i> <span class="ms-1">Settings</span></a>
+        </li>
+        <li class="nav-item d-flex align-items-center">
+        <a class="nav-link text-danger d-flex align-items-center" href="#"><i class="bi bi-box-arrow-right"></i> <span class="ms-1">Disconnect</span></a>
+        </li>
+      </ul>
       </div>
     </nav>
 
