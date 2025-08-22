@@ -128,15 +128,7 @@ const columnMismatchDefs = ref([
       return params.value
         ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
         : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }}, 
-  {
-    headerName: "Action",
-    field: "action",
-    cellRenderer: (params) => `<button class="btn btn-sm btn-outline-primary detail-btn" data-id="${params.data.id}"><i class="bi bi-eye"></i></button>`,
-    maxWidth: 150,
-    suppressMenu: true,
-    sortable: false,
-    filter: false
+    }
   }
 ])
 

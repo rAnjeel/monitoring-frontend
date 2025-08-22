@@ -18,54 +18,34 @@ export function parseCSV(text) {
 
 // utils/exportCsv.js
 export function exportAgGridToCsv(columnDefs, rowData, fileName = 'export-credentials.csv') {
-  // Colonnes supplémentaires
-  const extraColumns = [
-    { field: 'siteUsernameMatch', headerName: 'siteUsernameMatch', sourceField: 'siteUsername' },
-    { field: 'siteUsernameMatch', headerName: 'siteUsernameMatch', sourceField: 'siteUsername' },
-    { field: 'sitePasswordMatch', headerName: 'sitePasswordMatch', sourceField: 'sitePassword' },
-    { field: 'sitePortMatch', headerName: 'sitePortMatch', sourceField: 'sitePort' }
-  ];
+  const headers = columnDefs
+    .filter(col => col.field && !col.hide && !col.excludeFromExport)
+    .map(col => col.headerName || col.field)
+    .join(',');
 
-  // Préparer les en-têtes
-  const headers = [
-    ...columnDefs
-      .filter(col => col.field && !col.hide && !col.excludeFromExport)
-      .map(col => col.headerName || col.field),
-    ...extraColumns.map(col => col.headerName)
-  ].join(',');
+  const rows = rowData
+    .map(row => {
+      const baseValues = columnDefs
+        .filter(col => col.field && !col.hide && !col.excludeFromExport)
+        .map(col => {
+          let value = row[col.field];
+          if (value === null || value === undefined) return '';
+          
+          if (typeof value === 'object') {
+            if (value instanceof Date) return value.toISOString();
+            return JSON.stringify(value);
+          }
+          
+          if (typeof value === 'string') {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          
+          return value;
+        });
 
-  // Préparer les lignes de données
-  const rows = rowData.map(row => {
-    const baseValues = columnDefs
-      .filter(col => col.field && !col.hide && !col.excludeFromExport)
-      .map(col => {
-        let value = row[col.field];
-        if (value === null || value === undefined) return '';
-        
-        if (typeof value === 'object') {
-          if (value instanceof Date) return value.toISOString();
-          return JSON.stringify(value);
-        }
-        
-        if (typeof value === 'string') {
-          return `"${value.replace(/"/g, '""')}"`;
-        }
-        
-        return value;
-      });
-
-    const extraValues = extraColumns.map(col => {
-      let value = row[col.sourceField];
-      if (value === null || value === undefined) return '';
-      
-      if (typeof value === 'string') {
-        return `"${value.replace(/"/g, '""')}"`;
-      }
-      return value;
-    });
-
-    return [...baseValues, ...extraValues].join(',');
-  }).join('\n');
+      return baseValues.join(',');
+    })
+    .join('\n');
 
   // Combiner en contenu CSV
   const csvContent = `${headers}\n${rows}`;
@@ -74,13 +54,12 @@ export function exportAgGridToCsv(columnDefs, rowData, fileName = 'export-creden
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
-  
+
   link.setAttribute('href', url);
   link.setAttribute('download', fileName);
   link.style.visibility = 'hidden';
-  
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
-
