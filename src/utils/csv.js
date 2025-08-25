@@ -37,7 +37,8 @@ export function exportAgGridToCsv(columnDefs, rowData, fileName = 'export-creden
           }
           
           if (typeof value === 'string') {
-            return `"${value.replace(/"/g, '""')}"`;
+            // Remove the quotes around the value
+            return value.replace(/"/g, '""');
           }
           
           return value;

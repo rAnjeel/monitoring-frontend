@@ -480,7 +480,20 @@ function handleExport() {
 function confirmExport() {
   let name = exportFileName.value.trim()
   if (!name.endsWith('.csv')) name += '.csv'
-  exportAgGridToCsv(columnDefs.value, credentials.value, name)
+  // Ajoute une nouvelle déclaration ref pour conserver les colonnes utilisées à l'export
+  // Ip,CodeSite,siteUsername,sitePassword,isSitePasswordVerified,sitePort,siteSShVersion,toVerify
+  const exportColumns = ref([
+    { field: 'Ip', headerName: 'Ip'},
+    { field: 'CodeSite', headerName: 'CodeSite'},
+    { field: 'siteUsername', headerName: 'siteUsername'},
+    { field: 'sitePassword', headerName: 'sitePassword'},
+    { field: 'isSitePasswordVerified', headerName: 'isSitePasswordVerified'},
+    { field: 'sitePort', headerName: 'sitePort'},
+    { field: 'siteSShVersion', headerName: 'siteSShVersion'},
+    { field: 'toVerify', headerName: 'toVerify'}
+  ])
+
+  exportAgGridToCsv(exportColumns.value, filteredCredentials.value, name)
   showExportModal.value = false
 }
 
