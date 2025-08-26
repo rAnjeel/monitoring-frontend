@@ -196,6 +196,16 @@ export async function testCredentialsList(selectedRows) {
   }
 }
 
+export async function syncCredentials() {
+  try {
+    console.log('[GetCredentials] Début du test de synchronisation des credentials...');
+    const response = await api.get('/credentials/sync')
+    return response.data
+  } catch (error) {
+    console.error('[GetCredentials] Erreur lors de la récupération:', error)
+    throw new Error('Impossible de charger les credentials')
+  }
+}
 
 
 export async function getHistoricCredentials() {

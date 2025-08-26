@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList } from './services/credentials'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
