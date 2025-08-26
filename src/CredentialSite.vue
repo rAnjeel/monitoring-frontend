@@ -51,13 +51,6 @@ const formValues = ref({
 
 
 const columnDefs = ref([
-  {
-    headerName: ' ',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    width: 50,
-    pinned: 'left'
-  },
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
   { field: 'Ip', headerName: 'IP', flex: 5},
   { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
@@ -83,13 +76,6 @@ const columnDefs = ref([
   },
 ])
 const columnMismatchDefs = ref([
-  {
-    headerName: ' ',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    pinned: 'left',
-    flex: 1,
-  },
   { field: 'id', headerName: 'ID', flex: 2 },
   { field: 'Ip', headerName: 'IP', flex: 5},
   { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
@@ -526,6 +512,11 @@ function onCustomMenuMismatchUpdateClick() {
     console.log("Aucune ligne sélectionnée pour la synchronisation");
   }
 }
+
+function onRowClicked(event) {
+  selectedRows.value = [event.data]
+  console.log("Row clicked & selected:", event.data)
+}
 </script>
 
 <template>
@@ -638,6 +629,7 @@ function onCustomMenuMismatchUpdateClick() {
               :getRowClass="rowClassRules"
               @ready="onMismatchGridReady"
               @selectionChanged="onSelectionChanged"
+              @rowClicked="onRowClicked"
             />
           </div>
         </div>
@@ -730,6 +722,7 @@ function onCustomMenuMismatchUpdateClick() {
             :getRowClass="rowClassRules"
             @ready="onGridReady"
             @selection-changed="onSelectionChanged"
+            @rowClicked="onRowClicked"
           />
       </div>
     </div>
