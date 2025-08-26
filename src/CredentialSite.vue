@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify, testCredentialsList } from './services/credentials'
+import { bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -62,17 +62,6 @@ const columnDefs = ref([
   { field: 'Ip', headerName: 'IP', flex: 5},
   { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
   { field: 'siteUsername', headerName: 'Site Username', flex: 4 },
-  { 
-    field: 'isSitePasswordVerified', 
-    headerName: 'Password', 
-    flex: 4,
-    cellRenderer: (p) => {
-      const ok = Boolean(p.value)
-      return ok 
-        ? '<span class="pill pill-success" style="color:#0b4650">Verified</span>' 
-        : '<span class="pill pill-neutral" style="color:#434d57">Unknown</span>'
-    }
-  },
   { field: 'sitePort', headerName: 'Port', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
   { field: 'siteSShVersion', headerName: 'SSH', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
   {
@@ -92,15 +81,6 @@ const columnDefs = ref([
       return formatDateFR(params.value); 
     }
   },
-  {
-    field: 'toVerify', headerName: 'toVerify', flex: 3,
-    valueFormatter: (params) => {
-      if (params.value === null || params.value === undefined) return '';
-      return params.value ? 'not verified' : 'verified';
-    },
-    // Renderer personnalisé avec le style
-    cellRenderer: (p) => `<span class="code-chip">${p.value ? 'not verified' : 'verified'}</span>`
-  }
 ])
 const columnMismatchDefs = ref([
   {
@@ -308,29 +288,6 @@ async function syncSites() {
   }
 }
 
-async function syncCredentialSitesToVerify() {
-  loading.value = true;
-  try {
-    syncResult.value = await syncSitesToVerify();    
-
-    if (
-      (!syncResult.value?.matches || syncResult.value.matches.length === 0) &&
-      (!syncResult.value?.mismatches || syncResult.value.mismatches.length === 0)
-    ) {
-      noMismatchMessage.value = 'Aucun mismatch détecté. Tous les credentials sont synchronisés.';
-      return;
-    }
-    if (gridRef.value?.api) {
-      showSyncSummary();
-    }
-    await loadCredentials();
-  } catch (err) {
-    error.value = err.message;
-  } finally {
-    loading.value = false;
-    lastUpdated.value = new Date()
-  }
-}
 
 function showSyncSummary() {
   if (!syncResult.value) return;
@@ -487,10 +444,8 @@ function confirmExport() {
     { field: 'CodeSite', headerName: 'CodeSite'},
     { field: 'siteUsername', headerName: 'siteUsername'},
     { field: 'sitePassword', headerName: 'sitePassword'},
-    { field: 'isSitePasswordVerified', headerName: 'isSitePasswordVerified'},
     { field: 'sitePort', headerName: 'sitePort'},
     { field: 'siteSShVersion', headerName: 'siteSShVersion'},
-    { field: 'toVerify', headerName: 'toVerify'}
   ])
 
   exportAgGridToCsv(exportColumns.value, filteredCredentials.value, name)
@@ -591,11 +546,6 @@ function onCustomMenuMismatchUpdateClick() {
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           <i v-else class="bi bi-arrow-repeat me-2"></i>
           Synchronize all sites
-        </button>
-        <button class="btn btn-primary" @click="syncCredentialSitesToVerify" :disabled="loading">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          <i v-else class="bi bi-arrow-repeat me-2"></i>
-          Synchronize sites to verify
         </button>
       </div>
     </div>

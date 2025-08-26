@@ -73,28 +73,6 @@ export function exportContactsToCSV(list) {
   URL.revokeObjectURL(url)
 }
 
-export async function syncCredentials() {
-  try {
-    console.log('[GetCredentials] Début du test de synchronisation des credentials...');
-    const response = await api.get('/credentials/sync')
-    return response.data
-  } catch (error) {
-    console.error('[GetCredentials] Erreur lors de la récupération:', error)
-    throw new Error('Impossible de charger les credentials')
-  }
-}
-
-export async function syncSitesToVerify() {
-  try {
-    console.log('[GetCredentials] Début du test de synchronisation des credentials a verifier...');
-    const response = await api.get('/credentials/sync/to-verify')
-    return response.data
-  } catch (error) {
-    console.error('[GetCredentials] Erreur lors de la récupération des sites:', error)
-    throw new Error('Impossible de charger les credentials des sites a vérifier')
-  }
-}
-
 export async function bulkUpdateCredentials(updatedRows) {
   try {
     const results = [];
