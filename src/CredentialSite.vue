@@ -611,7 +611,7 @@ function toggleSelectAll() {
     </button>
   </div>
 
-  <div class="p-3 rounded">
+  <div class="p-4 rounded">
     <div v-if="noMismatchMessage" class="alert alert-success mt-4">
       {{ noMismatchMessage }}
     </div>
@@ -722,7 +722,7 @@ function toggleSelectAll() {
 
 
 
-<div class="p- rounded ">
+<div class="p-4 rounded ">
   <div class="card mt-3 p-4">
     <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
       <h5 class="mb-0">List Sites <span class="badge bg-light text-primary ms-2">{{ filteredCredentials.length }}</span></h5>
@@ -763,7 +763,7 @@ function toggleSelectAll() {
       No results. Try adjusting your search.
       </div>
       
-    <div v-else class="col-12 p-4">
+    <div v-else class="col-12">
         <div class="card-body p-0">
           <MainGrid
             ref="gridRef"
