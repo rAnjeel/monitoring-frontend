@@ -20,7 +20,7 @@ function ringStyle(pct) {
 </script>
 
 <template>
-  <div class="card mt-4 d-flex justify-content-center pb-3 ">
+  <div class="card mt-4 d-flex justify-content-center pb-3 shadow-sm ">
     
     <div class="card-body">
       <div class="row g-3 align-items-stretch text-center">

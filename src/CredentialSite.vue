@@ -717,7 +717,7 @@ function toggleSelectAll() {
 
 
 <div class="p-4 rounded ">
-  <div class="card mt-3 p-4">
+  <div class="card p-4 shadow-sm d-flex justify-content-center pb-3">
     <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
       <h5 class="mb-0">List Sites <span class="badge bg-light text-primary ms-2">{{ filteredCredentials.length }}</span></h5>
       <div class="d-flex gap-2">
