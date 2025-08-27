@@ -680,7 +680,7 @@ function toggleSelectAll() {
   </div>
 
   <!-- Menu contextuel custom -->
-<ul id="customMenu" 
+<ul id="customMenu" class="mb-4 rounded" 
     style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000;">
   <li id="menu-close" style="cursor:pointer; text-align:right;">
     <button class="btn" type="button" id="btn-close-menu" @click="onCustomMenuCloseClick">
@@ -696,7 +696,7 @@ function toggleSelectAll() {
 </ul>
 
 <!-- Custom menu pour mismatch -->
-<ul id="customMenuMismatch" 
+<ul id="customMenuMismatch" class="mb-4 rounded"
     style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1;">
   <li id="menu-close-mismatch" style="cursor:pointer; text-align:right;">
     <button class="btn" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
@@ -758,7 +758,7 @@ function toggleSelectAll() {
       </div>
       
     <div v-else class="col-12">
-        <div class="card-body p-4">
+        <div class="card-body p-4 menu-grid-container">
           <MainGrid
             ref="gridRef"
             :rowData="filteredCredentials"
