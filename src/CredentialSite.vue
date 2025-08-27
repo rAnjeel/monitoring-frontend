@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList } from './services/credentials'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -387,6 +387,41 @@ async function runTestSelectedCredentials() {
     console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
 
     syncResult.value = await testCredentialsList(selectedRows.value)
+
+    if (!syncResult.value || syncResult.value.length === 0) {
+      noMismatchMessage.value = 'Aucun résultat de test disponible.'
+      return
+    }
+
+    console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
+
+    if (gridRef.value?.api) {
+      showSyncSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
+    }
+
+    await loadCredentials()
+  } catch (err) {
+    error.value = err.message
+    console.error('[runTestSelectedCredentials] Erreur lors du test de la liste de credentials :', err)
+  } finally {
+    loading.value = false
+    lastUpdated.value = new Date()
+  }
+}
+
+async function runTestFormCredentials() {
+  closeFormModal()
+  onCustomMenuCloseClick()
+  if (!selectedRows.value.length) {
+    console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
+    return
+  }
+
+  loading.value = true
+  try {
+    console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
+
+    syncResult.value = await testCredentialsForm(selectedRows.value, formValues.value)
 
     if (!syncResult.value || syncResult.value.length === 0) {
       noMismatchMessage.value = 'Aucun résultat de test disponible.'
@@ -823,7 +858,7 @@ function toggleSelectAll() {
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-success" @click="runTestSelectedCredentials()">
+          <button class="btn btn-success" @click="runTestFormCredentials()">
             Test
           </button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">

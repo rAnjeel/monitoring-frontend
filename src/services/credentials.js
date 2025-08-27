@@ -195,6 +195,52 @@ export async function testCredentialsList(selectedRows) {
   }
 }
 
+export async function testCredentialsForm(selectedRows, formValues) {
+  try {
+    if (!selectedRows?.length) {
+      return { success: false, error: 'Aucune ligne sélectionnée' }
+    }
+
+    if (!formValues) {
+      throw new Error('Aucune donnée du formulaire à tester')
+    }
+
+    const { username, password, port } = formValues
+    if (!username && !password && !port) {
+      throw new Error('Aucune donnée du formulaire à tester')
+    }
+
+    const credentialsData = []
+
+    for (const row of selectedRows) {
+      const id = row.id
+      if (!id) continue
+
+      const { data: existing } = await api.get(`/credentials/${id}`)
+
+      const updated = {
+        ...existing,
+        ...(username && { siteUsername: username }),
+        ...(password && { sitePassword: password }),
+        ...(port && { sitePort: Number(port) }),
+      }
+
+      credentialsData.push(updated)
+    }
+
+    // Envoi pour test
+    const response = await api.post(`/credentials/sync/form`, credentialsData)
+    return response.data
+
+  } catch (error) {
+    console.error('[testCredentialsForm] Erreur:', error)
+    return {
+      success: false,
+      error: error.message || 'Échec du test de la liste de credentials',
+    }
+  }
+}
+
 export async function syncCredentials() {
   try {
     console.log('[GetCredentials] Début du test de synchronisation des credentials...');
