@@ -617,10 +617,7 @@ function toggleSelectAll() {
     </div>
 
     <div v-if="syncResult?.mismatches?.length" class="mt-4">
-      <div class="card mt-3">
-      </div>
-    
-      <div class="card mt-4 shadow-sm d-flex justify-content-center pb-3 ">
+      <div class="card p-4 shadow-sm d-flex justify-content-center pb-3 ">
         <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
           <h5 class="mb-0">Statistics</h5>
           <small class="text-muted">Synced: {{ matchedCount }} / {{ totalSites }}</small>
@@ -651,11 +648,8 @@ function toggleSelectAll() {
             </div>
           <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" />
         </div>
-      </div>
-
-      <div class="card mt-4 shadow-sm">
         <div class="card-header bg-danger text-white d-flex align-items-center justify-content-between text-uppercase">
-          <h5 class="mb-0">Mismatches Sites ({{ syncResult.mismatches.length }})</h5>
+          <h5 class="mb-0">Sites Issues ({{ syncResult.mismatches.length }})</h5>
         </div>
         <div class="card-body">
           <div class="text-end mt-3 justify-content-center m-3">
@@ -764,7 +758,7 @@ function toggleSelectAll() {
       </div>
       
     <div v-else class="col-12">
-        <div class="card-body p-0">
+        <div class="card-body p-4">
           <MainGrid
             ref="gridRef"
             :rowData="filteredCredentials"
