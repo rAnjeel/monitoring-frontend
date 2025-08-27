@@ -184,6 +184,12 @@ const contextMenuItemsRuntime = ref([])
 // Mismatch details modal state
 const showMismatchModal = ref(false)
 const currentMismatch = ref(null)
+const isFormComplete = computed(() => {
+  return formValues.value.username.trim() !== '' &&
+         formValues.value.password.trim() !== '' &&
+         formValues.value.port.toString().trim() !== ''
+})
+
 
 
 function handleViewDetails(id) {
@@ -716,7 +722,7 @@ function toggleSelectAll() {
 
 
 
-<div class="p-3 rounded ">
+<div class="p- rounded ">
   <div class="card mt-3 p-4">
     <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
       <h5 class="mb-0">List Sites <span class="badge bg-light text-primary ms-2">{{ filteredCredentials.length }}</span></h5>
@@ -757,7 +763,7 @@ function toggleSelectAll() {
       No results. Try adjusting your search.
       </div>
       
-    <div v-else class="col-12">
+    <div v-else class="col-12 p-4">
         <div class="card-body p-0">
           <MainGrid
             ref="gridRef"
@@ -840,7 +846,7 @@ function toggleSelectAll() {
         </div>
         <div class="modal-body">
           <div class="mb-2">
-            <label>IP des sites sélectionnés</label>
+            <label>IP (Selected sites)</label>
             <textarea
               class="form-control"
               rows="3"
@@ -854,15 +860,15 @@ function toggleSelectAll() {
             <label>sitePassword</label><input v-model="formValues.password" class="form-control" type="password" />
           </div>
           <div class="mb-2">
-            <label>sitePort</label><input v-model="formValues.port" class="form-control" type="number" />
+            <label>sitePort</label><input v-model="formValues.port" class="form-control" type="number" min="0" />
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-success" @click="runTestFormCredentials()">
-            Test
+          <button class="btn btn-success" @click="runTestFormCredentials()" :disabled="!isFormComplete">
+            Test form values
           </button>
           <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
-            Update selected lines
+            Update selected sites
           </button>
           <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
         </div>
