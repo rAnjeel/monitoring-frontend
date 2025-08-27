@@ -43,12 +43,12 @@ const gridRefMismatch = ref(null)
 const gridRef = ref(null)
 const selectedRows = ref([])
 const lastUpdated = ref(null)
+const allSelected = ref(false)
 const formValues = ref({
   username: '',
   password: '',
   port: '',
 })
-
 
 const columnDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
@@ -111,16 +111,13 @@ const defaultColDef = {
   },
   onCellContextMenu: (event) => {
       const menu = document.getElementById("customMenu");
-      // Sauvegarde de la cellule cliquée
       window.cellClicked = event;
       menu.style.display = "block";
       menu.style.position = "absolute";
-
-      // Positionner le menu au clic
       menu.style.left = event.event.pageX + "px";
       menu.style.top = event.event.pageY + "px";
       console.log('Context menu 1 opened at:', menu.style);
-
+      document.body.style.overflow = "hidden";
       
     }
   }
@@ -143,6 +140,7 @@ const defaultColDefMismatch = {
     menu.style.top = event.event.clientY + "px";
     menu.style.display = "block";
     console.log('Context menu 2 opened at:', menu.style);
+    document.body.style.overflow = "hidden";
   }
 }
 
@@ -240,6 +238,9 @@ function isMismatch(credential) {
   return syncResult.value?.mismatches?.some(m => m.id === credential.id)
 }
 
+function isMatch(credential) {
+  return syncResult.value?.matches?.some(m => m.id === credential.id)
+}
 
 function closeFormModal() {
   showModal.value = false
@@ -305,7 +306,11 @@ function showSyncSummary() {
 
 // removed unused legacy handler; ButtonRenderer now handles test clicks
 
-const rowClassRules = (params) => (isMismatch(params.data) ? 'row-mismatch' : '')
+const rowClassRules = (params) => {
+  if (isMismatch(params.data)) return 'row-mismatch'
+  if (isMatch(params.data)) return 'row-match'
+  return ''
+}
 
 
 function onSelectionChanged(event) {
@@ -331,25 +336,15 @@ async function saveUpdates() {
 
 
 function getSelectedRows() {
-  const rows = selectedRows.value
-  
-  if (rows.length === 0) {
-    console.log("Aucune ligne sélectionnée")
-    selectedRows.value = []
-    return
-  }
-
-  selectedRows.value = rows
-
   console.log("=== LIGNES SÉLECTIONNÉES ===")
-  rows.forEach((row, index) => {
+  selectedRows.value.forEach((row, index) => {
     console.log(`\nLigne ${index + 1}:`)
     console.log(`ID: ${row.id}`)
     console.log(`IP: ${row.Ip}`)
     console.log(`Site: ${row.CodeSite}`)
   })
 
-  console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+  console.log(`\nTotal: ${selectedRows.value.length} ligne(s) sélectionnée(s)`)
 
   showFormModal() 
 }
@@ -447,22 +442,10 @@ function clearSearch() {
   filteredCredentials.value = credentials.value
 }
 
-function onCustomMenuUpdateClick() {
-  getSelectedRows()
-  const rows = gridRef.value.getSelectedRows?.() || []
-  
-  if (rows.length > 0) {
-    selectedRows.value = rows
-
+function onCustomMenuUpdateClick() {  
+  if (selectedRows.value.length > 0) {
     console.log("=== LIGNES SÉLECTIONNÉES ===")
-    rows.forEach((row, index) => {
-      console.log(`\nLigne ${index + 1}:`)
-      console.log(`ID: ${row.id}`)
-      console.log(`IP: ${row.Ip}`)
-      console.log(`Site: ${row.CodeSite}`)
-    })
-
-    console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+    console.log(`\nTotal: ${selectedRows.value.length} ligne(s) sélectionnée(s)`)
 
     showFormModal() 
   } else {
@@ -473,11 +456,13 @@ function onCustomMenuUpdateClick() {
 
 function onCustomMenuCloseClick() {
   document.getElementById('customMenu').style.display = 'none';
+  document.body.style.overflow = "auto";
 }
 
 // Custom menu for mismatch grid
 function onCustomMenuMismatchCloseClick() {
   document.getElementById('customMenuMismatch').style.display = 'none';
+  document.body.style.overflow = "auto";
 }
 
 function onCustomMenuMismatchDetailsClick() {
@@ -517,6 +502,28 @@ function onRowClicked(event) {
   selectedRows.value = [event.data]
   console.log("Row clicked & selected:", event.data)
 }
+
+
+function selectAllRows() {
+  selectedRows.value = filteredCredentials.value
+  console.log("All rows selected:", selectedRows.value)
+}
+
+function unselectAllRows() {
+  selectedRows.value = []
+  console.log("All rows unselected:", selectedRows.value)
+}
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    unselectAllRows()
+    allSelected.value = false
+  } else {
+    selectAllRows()
+    allSelected.value = true
+  }
+}
+
 </script>
 
 <template>
@@ -649,7 +656,7 @@ function onRowClicked(event) {
     <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">Update</button>
   </li>
   <li id="menu-sync" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Test connexion</button>
   </li>
 </ul>
 
@@ -668,7 +675,7 @@ function onRowClicked(event) {
     <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">Update</button>
   </li>
   <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
+    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Test connexion</button>
   </li>
 </ul>
 
@@ -681,6 +688,9 @@ function onRowClicked(event) {
       <div class="d-flex gap-2">
         <button class="btn btn-outline-primary" @click="handleExport">
           <i class="bi bi-download"></i> Export
+        </button>
+        <button class="btn btn-outline-primary" @click="toggleSelectAll">
+          {{ allSelected ? 'Unselect All' : 'Select All' }}
         </button>
         <button class="btn btn-ghost" @click="loadCredentials" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
@@ -703,8 +713,8 @@ function onRowClicked(event) {
           <button class="btn btn-outline-secondary" v-if="searchQuery" @click="clearSearch">Clear</button>
         </div>
       </div>
-      <div class="col-12 col-lg-6 text-lg-end">
-        <small class="text-muted">Showing {{ filteredCredentials.length }} of {{ totalSites }}</small>
+      <div class="col-12 col-lg-6 text-lg-end" v-if="selectedRows.length">
+        <small class="text-muted">Selected rows: {{ selectedRows.length }}</small>
       </div>
     </div>
 
@@ -795,13 +805,21 @@ function onRowClicked(event) {
         </div>
         <div class="modal-body">
           <div class="mb-2">
-            <label>siteUsername</label><input v-model="formValues.siteUsername" class="form-control" type="text" />
+            <label>IP des sites sélectionnés</label>
+            <textarea
+              class="form-control"
+              rows="3"
+              readonly
+            >{{ selectedRows.map(row => row.Ip).join('\n') }}</textarea>
           </div>
           <div class="mb-2">
-            <label>sitePassword</label><input v-model="formValues.sitePassword" class="form-control" type="password" />
+            <label>siteUsername</label><input v-model="formValues.username" class="form-control" type="text" />
           </div>
           <div class="mb-2">
-            <label>sitePort</label><input v-model="formValues.sitePort" class="form-control" type="number" />
+            <label>sitePassword</label><input v-model="formValues.password" class="form-control" type="password" />
+          </div>
+          <div class="mb-2">
+            <label>sitePort</label><input v-model="formValues.port" class="form-control" type="number" />
           </div>
         </div>
         <div class="modal-footer">

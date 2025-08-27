@@ -11,7 +11,6 @@
     rowSelection="multiple"
     :rowMultiSelectWithClick="true"
     suppressCellFocus="true"
-
   />
 </template>
 
