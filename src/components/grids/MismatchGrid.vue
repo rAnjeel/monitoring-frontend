@@ -10,7 +10,6 @@
     :headerHeight="44"
     rowSelection="multiple"
     :rowMultiSelectWithClick="true"
-    :suppressRowClickSelection="true"
     suppressCellFocus="true"
   />
 </template>

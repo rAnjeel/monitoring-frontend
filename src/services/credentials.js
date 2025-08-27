@@ -120,9 +120,13 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
   try {
     const results = [];
 
-    // Vérification des champs du formulaire
-    const { siteUsername, sitePassword, sitePort } = formValues || {};
-    if (!siteUsername && !sitePassword && !sitePort) {
+    if (!formValues) {
+      throw new Error('Aucune donnée du formulaire à mettre à jour');
+    }
+
+    const { username, password, port } = formValues;
+
+    if (!username && !password && !port) {
       throw new Error('Aucune donnée du formulaire à mettre à jour');
     }
 
@@ -130,23 +134,17 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
       const id = row.id;
       if (!id) continue;
 
-      // Récupérer l'existant
       const { data: existing } = await api.get(`/credentials/${id}`);
 
-      // Construire les données à mettre à jour
       const updated = {
         ...existing,
-        ...(siteUsername && { siteUsername }),
-        ...(sitePassword && { sitePassword, isSitePasswordVerified: 1 }),
-        ...(sitePort && { sitePort }),
+        ...(username && { siteUsername: username }),
+        ...(password && { sitePassword: password }),
+        ...(port && { sitePort: Number(port) }),
         lastDateChange: new Date().toISOString()
       };
 
-      // Envoi PUT
-      const { data: response } = await api.put(
-        `/credentials/solve/${id}`,
-        updated
-      );
+      const { data: response } = await api.put(`/credentials/solve/${id}`, updated);
 
       results.push(response);
     }
@@ -158,13 +156,14 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
     };
 
   } catch (error) {
-    console.error('[bulkUpdateCredentials] Erreur:', error);
+    console.error('[bulkUpdateFormCredentials] Erreur:', error);
     return {
       success: false,
       error: error.message || 'Échec de la mise à jour des credentials'
     };
   }
 }
+
 
 export async function testCredentialsList(selectedRows) {
   try {
