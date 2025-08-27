@@ -59,7 +59,7 @@ const columnDefs = ref([
   { field: 'siteSShVersion', headerName: 'SSH', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
   {
     field: 'lastDateChange',
-    headerName: 'lastSuccessConnection',
+    headerName: 'lastDateChange',
     excludeFromExport: true,
     flex: 6,
     valueFormatter: (params) => {
