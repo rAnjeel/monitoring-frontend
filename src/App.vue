@@ -35,7 +35,7 @@
             <router-link to="/import-csv" class="nav-link" href="#"><i class="bi bi-arrow-down"></i>Import CSV</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><i class="bi bi-gear"></i> Paramètres</a>
+            <a class="nav-link" href="#"><i class="bi bi-gear"></i> Settings</a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-danger" href="#"><i class="bi bi-box-arrow-right"></i> Déconnexion</a>
