@@ -10,20 +10,21 @@ COPY . .
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
+# Build du frontend avec Vite
 RUN npm run build
 
-# --- Express stage ---
+# --- Production stage ---
 FROM node:20-alpine
 WORKDIR /app
 
-# Install prod deps (express, ejs, etc.)
+# Copier uniquement les fichiers nécessaires
 COPY package*.json ./
-RUN npm install --omit=dev express ejs
+RUN npm install --omit=dev express@^4.18.2 ejs
 
-# Copy build output and server code
 COPY --from=build /app/dist ./dist
 COPY server.js ./server.js
 COPY views ./views
 
-EXPOSE 3000
+EXPOSE 8080
+
 CMD ["node", "server.js"]

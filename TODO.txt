@@ -1,4 +1,2 @@
-Objectif: Creer un carnet d'adressse avec CRUD avec import et export CSV
 
-Details: 
     - 
