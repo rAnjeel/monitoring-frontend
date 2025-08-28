@@ -4,10 +4,6 @@
 
 <template>
   <div id="app">
-    <!-- <nav>
-      <router-link to="/">Accueil</router-link> |
-      <router-link to="/failed-logins">Failed Logins</router-link>
-    </nav> -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase">
       <a class="navbar-brand fw-bold" href="#">Monitoring</a>
 
