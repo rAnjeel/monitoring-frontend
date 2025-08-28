@@ -7,7 +7,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite build --watch\" \"pm2-runtime server.js\"",    
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
@@ -31,6 +31,7 @@
     "@eslint/js": "^9.31.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^10.2.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.31.0",
     "eslint-plugin-vue": "~10.3.0",
     "globals": "^16.3.0",
