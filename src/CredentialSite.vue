@@ -43,6 +43,8 @@ const gridRefMismatch = ref(null)
 const gridRef = ref(null)
 const selectedRows = ref([])
 const lastUpdated = ref(null)
+const showSuccessModal = ref(false)
+const successMessage = ref('')
 const allSelected = ref(false)
 const formValues = ref({
   username: '',
@@ -332,10 +334,10 @@ const showSaveButton = ref(false)
 async function saveUpdates() {
   try {
     await bulkUpdateCredentials(updatedRows.value)
-    alert('Mise à jour réussie')
+    openSuccessModal('Mise à jour réussie')
     updatedRows.value = []
   } catch (err) {
-    alert('Échec de la mise à jour')
+    openSuccessModal('Échec de la mise à jour')
     console.error(err)
   }
 }
@@ -372,8 +374,7 @@ async function updateSelectedCredentials(formValues) {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
     onCustomMenuCloseClick()
-    alert('Mise à jour réussie')
-    // await syncSites()
+    openSuccessModal('Mise à jour réussie')
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
   }
@@ -565,12 +566,20 @@ function toggleSelectAll() {
   }
 }
 
+function openSuccessModal(message) {
+  successMessage.value = message
+  showSuccessModal.value = true
+}
+function closeSuccessModal() {
+  showSuccessModal.value = false
+  successMessage.value = ''
+}
 </script>
 
 <template>
   <!-- Header -->
   <div class="dashboard-header">
-    <div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center justify-content-between pt-5">
       <div>
         <div class="breadcrumbs">
           <span class="crumb">Monitoring</span>
@@ -680,43 +689,60 @@ function toggleSelectAll() {
   </div>
 
   <!-- Menu contextuel custom -->
-<ul id="customMenu" class="mb-4 rounded" 
-    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000;">
-  <li id="menu-close" style="cursor:pointer; text-align:right;">
-    <button class="btn" type="button" id="btn-close-menu" @click="onCustomMenuCloseClick">
-      <i class="bi bi-x"></i>
-    </button>
-  </li>
-  <li id="menu-delete" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">Update</button>
-  </li>
-  <li id="menu-sync" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Test connexion</button>
-  </li>
-</ul>
+  <ul id="customMenu" class="mb-2 rounded small"
+      style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
+    
+    <li class="text-end mb-1">
+      <button class="btn btn-sm btn-link p-0 text-muted" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuCloseClick">
+        <i class="bi bi-x"></i>
+      </button>
+    </li>
+    <li id="menu-delete" style="padding:2px;">
+      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start" 
+              type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
+        <i class="bi bi-pencil-square me-2"></i> Update
+      </button>
+    </li>
+    <li id="menu-sync" style="padding:2px;">
+      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start" 
+              type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+        <i class="bi bi-plug me-2"></i> Test connexion
+      </button>
+    </li>
+  </ul>
 
-<!-- Custom menu pour mismatch -->
-<ul id="customMenuMismatch" class="mb-4 rounded"
-    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1;">
-  <li id="menu-close-mismatch" style="cursor:pointer; text-align:right;">
-    <button class="btn" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
-      <i class="bi bi-x"></i>
-    </button>
-  </li>
-  <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Show details</button>
-  </li>
-  <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">Update</button>
-  </li>
-  <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Test connexion</button>
-  </li>
-</ul>
+  <!-- Custom menu mismatch -->
+  <ul id="customMenuMismatch" class="mb-2 rounded small"
+      style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
+    
+    <li class="text-end mb-1">
+      <button class="btn btn-sm btn-link p-0 text-muted" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
+        <i class="bi bi-x"></i>
+      </button>
+    </li>
+    <li id="menu-details-mismatch" style="padding:2px;">
+      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start"
+              type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
+        <i class="bi bi-info-circle me-2"></i> Show details
+      </button>
+    </li>
+    <li id="menu-delete-mismatch" style="padding:2px;">
+      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start"
+              type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
+        <i class="bi bi-pencil-square me-2"></i> Update
+      </button>
+    </li>
+    <li id="menu-sync-mismatch" style="padding:2px;">
+      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start"
+              type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+        <i class="bi bi-plug me-2"></i> Test connexion
+      </button>
+    </li>
+  </ul>
 
 
 
-<div class="p-4 rounded ">
+<div class="p-4 rounded pb">
   <div class="card p-4 shadow-sm d-flex justify-content-center pb-3">
     <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
       <h5 class="mb-0">List Sites <span class="badge bg-light text-primary ms-2">{{ filteredCredentials.length }}</span></h5>
@@ -870,23 +896,51 @@ function toggleSelectAll() {
     </div>
   </div>
 
-<!-- Modal Export CSV -->
-<div v-if="showExportModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3)">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Exporter en CSV</h5>
-        <button type="button" class="btn-close" @click="cancelExport"></button>
-      </div>
-      <div class="modal-body">
-        <label for="csvFileName">Nom du fichier :</label>
-        <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="cancelExport">Annuler</button>
-        <button class="btn btn-success" @click="confirmExport">Exporter</button>
+  <!-- Modal Export CSV -->
+  <div v-if="showExportModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Exporter en CSV</h5>
+          <button type="button" class="btn-close" @click="cancelExport"></button>
+        </div>
+        <div class="modal-body">
+          <label for="csvFileName">Nom du fichier :</label>
+          <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="cancelExport">Annuler</button>
+          <button class="btn btn-success" @click="confirmExport">Exporter</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Modal Success -->
+  <div
+    v-if="showSuccessModal"
+    class="modal fade show d-block"
+    tabindex="-1"
+    style="background: rgba(0,0,0,0.3)"
+  >
+    <div class="modal-dialog" style="max-width: 420px;">
+      <div
+        class="modal-content text-center p-4 border-0 rounded-4"
+        style="
+          background: linear-gradient(135deg, #ffffffcc, #f8f9facc);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        "
+      >
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 2.5rem;"></i>
+        <h6 class="mt-3 mb-2 fw-bold">Succès</h6>
+        <p class="text-muted mb-3">{{ successMessage }}</p>
+        <button class="btn btn-success btn-sm px-4 rounded-pill shadow-sm" @click="closeSuccessModal">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+
 </template>

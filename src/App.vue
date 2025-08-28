@@ -4,8 +4,8 @@
 
 <template>
   <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase">
-      <a class="navbar-brand fw-bold" href="#">Monitoring</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 text-uppercase fixed-top">
+      <a class="navbar-brand fw-bold" href="/">Monitoring</a>
 
       <button
         class="navbar-toggler"
