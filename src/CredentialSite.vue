@@ -388,7 +388,6 @@ async function updateSelectedCredentials(formValues) {
 
 
 async function runTestSelectedCredentials() {
-  closeFormModal()
   onCustomMenuCloseClick()
   if (!selectedRows.value.length) {
     console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
@@ -434,7 +433,7 @@ async function runTestFormCredentials() {
   try {
     console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
 
-    syncResult.value = await testCredentialsForm(selectedRows.value, formValues.value)
+    syncResult.value  = await testCredentialsForm(selectedRows.value, formValues.value)
 
     if (!syncResult.value || syncResult.value.length === 0) {
       noMismatchMessage.value = 'Aucun résultat de test disponible.'
@@ -442,7 +441,7 @@ async function runTestFormCredentials() {
     }
 
     console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
-    showTestSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
+    showTestSummary() 
 
   } catch (err) {
     error.value = err.message
@@ -577,13 +576,30 @@ function closeSuccessModal() {
 }
 
 function showTestSummary() {
-  testResults.value = syncResult.value || []
+  const results = []
+
+  if (syncResult.value.mismatches.length === 0) {
+    results.push({
+      success: true,
+      message: "Tous les credentials ont réussi ✅"
+    })
+  } else {
+    syncResult.value.mismatches.forEach((m) => {
+      results.push({
+        success: false,
+        message: `Échec sur ${m.Ip}:${m.sitePort} - ${m.errorDescription || 'Erreur inconnue'}`
+      })
+    })
+  }
+
+  testResults.value = results
   showTestModal.value = true
 }
 
+
+
 function closeTestModal() {
   showTestModal.value = false
-  showFormModal()
 }
 
 </script>

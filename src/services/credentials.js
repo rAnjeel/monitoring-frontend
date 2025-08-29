@@ -230,6 +230,7 @@ export async function testCredentialsForm(selectedRows, formValues) {
 
     // Envoi pour test
     const response = await api.post(`/credentials/sync/form`, credentialsData)
+    console.log('[testCredentialsForm] Réponse du serveur :', response)
     return response.data
 
   } catch (error) {
