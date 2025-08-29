@@ -45,6 +45,8 @@ const selectedRows = ref([])
 const lastUpdated = ref(null)
 const showSuccessModal = ref(false)
 const successMessage = ref('')
+const showTestModal = ref(false)
+const testResults = ref([])
 const allSelected = ref(false)
 const formValues = ref({
   username: '',
@@ -417,7 +419,6 @@ async function runTestSelectedCredentials() {
 }
 
 async function runTestFormCredentials() {
-  closeFormModal()
   onCustomMenuCloseClick()
   if (!selectedRows.value.length) {
     console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
@@ -572,6 +573,16 @@ function closeSuccessModal() {
   showSuccessModal.value = false
   successMessage.value = ''
 }
+
+function showTestSummary() {
+  testResults.value = syncResult.value || []
+  showTestModal.value = true
+}
+
+function closeTestModal() {
+  showTestModal.value = false
+}
+
 </script>
 
 <template>
@@ -936,6 +947,57 @@ function closeSuccessModal() {
         <button class="btn btn-success btn-sm px-4 rounded-pill shadow-sm" @click="closeSuccessModal">
           OK
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Test -->
+  <div
+  v-if="showTestModal"
+  class="modal fade show d-block"
+  tabindex="-1"
+  style="background: rgba(0,0,0,0.3)"
+  >
+    <div class="modal-dialog" style="max-width: 600px;">
+      <div
+        class="modal-content p-4 border-0 rounded-4"
+        style="
+          background: linear-gradient(135deg, #ffffffcc, #f8f9facc);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        "
+      >
+        <div class="text-center mb-3">
+          <i class="bi bi-info-circle-fill text-primary" style="font-size: 2.2rem;"></i>
+          <h5 class="mt-2 fw-bold">Résultats du test</h5>
+          <p class="text-muted mb-0">Voici les résultats pour les credentials testés :</p>
+        </div>
+
+        <div v-if="testResults.length">
+          <ul class="list-group mb-3">
+            <li v-for="(result, index) in testResults" :key="index" class="list-group-item d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-semibold">Credential {{ index + 1 }}</div>
+                <div class="text-muted small">{{ result.message || 'Aucun message.' }}</div>
+              </div>
+              <span :class="{
+                'badge bg-success': result.success,
+                'badge bg-danger': !result.success
+              }">
+                {{ result.success ? 'Succès' : 'Échec' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div v-else class="text-center text-muted">
+          Aucun résultat à afficher.
+        </div>
+
+        <div class="text-center">
+          <button class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" @click="closeTestModal">
+            Fermer
+          </button>
+        </div>
       </div>
     </div>
   </div>
