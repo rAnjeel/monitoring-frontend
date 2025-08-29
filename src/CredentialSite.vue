@@ -442,10 +442,7 @@ async function runTestFormCredentials() {
     }
 
     console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
-
-    if (gridRef.value?.api) {
-      showTestSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
-    }
+    showTestSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
 
   } catch (err) {
     error.value = err.message

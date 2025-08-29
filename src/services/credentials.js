@@ -144,7 +144,7 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
         lastDateChange: new Date().toISOString()
       };
 
-      const { data: response } = await api.put(`/credentials/update/${id}`, updated);
+      const { data: response } = await api.put(`/credentials/solve/${id}`, updated);
 
       results.push(response);
     }
