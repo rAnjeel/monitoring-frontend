@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Installer les dépendances
 COPY package*.json ./
-RUN npm ci
+RUN npm i
 
 COPY . ./
 ARG VITE_API_BASE_URL
@@ -26,7 +26,7 @@ COPY --from=build /app/dist ./dist
 COPY server.js ./server.js
 COPY views ./views
 
-RUN npm install
+RUN npm i
 
 # Exposer le port pour Express
 EXPOSE 8080

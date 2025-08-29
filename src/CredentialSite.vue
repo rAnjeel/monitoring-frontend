@@ -460,8 +460,6 @@ function handleExport() {
 function confirmExport() {
   let name = exportFileName.value.trim()
   if (!name.endsWith('.csv')) name += '.csv'
-  // Ajoute une nouvelle déclaration ref pour conserver les colonnes utilisées à l'export
-  // Ip,CodeSite,siteUsername,sitePassword,isSitePasswordVerified,sitePort,siteSShVersion,toVerify
   const exportColumns = ref([
     { field: 'Ip', headerName: 'Ip'},
     { field: 'CodeSite', headerName: 'CodeSite'},
