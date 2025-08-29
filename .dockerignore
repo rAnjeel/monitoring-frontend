@@ -5,6 +5,5 @@ Dockerfile*
 .git
 .gitignore
 .vscode
-.env
 coverage
 dist
