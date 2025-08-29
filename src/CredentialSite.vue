@@ -379,6 +379,10 @@ async function updateSelectedCredentials(formValues) {
     openSuccessModal('Mise à jour réussie')
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
+  } finally {
+    await loadCredentials()
+    closeFormModal()
+    selectedRows.value = []
   }
 }
 
@@ -426,6 +430,7 @@ async function runTestFormCredentials() {
   }
 
   loading.value = true
+  const selected = selectedRows.value
   try {
     console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
 
@@ -439,16 +444,16 @@ async function runTestFormCredentials() {
     console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
 
     if (gridRef.value?.api) {
-      showSyncSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
+      showTestSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
     }
 
-    await loadCredentials()
   } catch (err) {
     error.value = err.message
     console.error('[runTestSelectedCredentials] Erreur lors du test de la liste de credentials :', err)
   } finally {
     loading.value = false
     lastUpdated.value = new Date()
+    selectedRows.value = selected
   }
 }
 
@@ -581,6 +586,7 @@ function showTestSummary() {
 
 function closeTestModal() {
   showTestModal.value = false
+  showFormModal()
 }
 
 </script>
@@ -942,7 +948,7 @@ function closeTestModal() {
         "
       >
         <i class="bi bi-check-circle-fill text-success" style="font-size: 2.5rem;"></i>
-        <h6 class="mt-3 mb-2 fw-bold">Succès</h6>
+        <h6 class="mt-3 mb-2 fw-bold">Result message</h6>
         <p class="text-muted mb-3">{{ successMessage }}</p>
         <button class="btn btn-success btn-sm px-4 rounded-pill shadow-sm" @click="closeSuccessModal">
           OK
