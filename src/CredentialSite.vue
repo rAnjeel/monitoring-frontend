@@ -886,39 +886,64 @@ function closeTestModal() {
     tabindex="-1"
     style="background: rgba(0, 0, 0, 0.3)"
   >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title text-uppercase">Update sites</h5>
-          <button type="button" class="btn-close" @click="closeFormModal"></button>
+    <div class="modal-dialog" style="max-width: 400px;">
+      <div
+        class="modal-content p-3 border-0 rounded-4"
+        style="
+          background: #fff;
+          backdrop-filter: blur(6px);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        "
+      >
+        <!-- Header -->
+        <div class="text-center mb-3">
+          <i class="bi bi-pencil-square text-success" style="font-size: 1.2rem;"></i>
+          <h6 class="mt-2 fw-bold text-uppercase mb-0">Update sites</h6>
         </div>
-        <div class="modal-body">
-          <div class="mb-2">
-            <label>IP (Selected sites)</label>
-            <textarea
-              class="form-control"
-              rows="3"
-              readonly
-            >{{ selectedRows.map(row => row.Ip).join('\n') }}</textarea>
-          </div>
-          <div class="mb-2">
-            <label>siteUsername</label><input v-model="formValues.username" class="form-control" type="text" />
-          </div>
-          <div class="mb-2">
-            <label>sitePassword</label><input v-model="formValues.password" class="form-control" type="password" />
-          </div>
-          <div class="mb-2">
-            <label>sitePort</label><input v-model="formValues.port" class="form-control" type="number" min="0" />
-          </div>
+
+        <!-- Body -->
+        <div class="mb-2">
+          <label class="fw-semibold small">IP (Selected sites)</label>
+          <textarea
+            class="form-control form-control-sm"
+            rows="2"
+            readonly
+          >{{ selectedRows.map(row => row.Ip).join('\n') }}</textarea>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-success" @click="runTestFormCredentials()" :disabled="!isFormComplete">
-            Test form values
+        <div class="mb-2">
+          <label class="fw-semibold small">siteUsername</label>
+          <input v-model="formValues.username" class="form-control form-control-sm" type="text" />
+        </div>
+        <div class="mb-2">
+          <label class="fw-semibold small">sitePassword</label>
+          <input v-model="formValues.password" class="form-control form-control-sm" type="password" />
+        </div>
+        <div class="mb-2">
+          <label class="fw-semibold small">sitePort</label>
+          <input v-model="formValues.port" class="form-control form-control-sm" type="number" min="0" />
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-2">
+          <button
+            class="btn btn-success btn-sm px-3 rounded-pill shadow-sm mx-1 my-1"
+            @click="runTestFormCredentials()"
+            :disabled="!isFormComplete"
+          >
+            Test
           </button>
-          <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
-            Update selected sites
+          <button
+            class="btn btn-success btn-sm px-3 rounded-pill shadow-sm mx-1 my-1"
+            @click="updateSelectedCredentials(formValues)"
+          >
+            Update
           </button>
-          <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
+          <button
+            class="btn btn-secondary btn-sm px-3 rounded-pill shadow-sm mx-1 my-1"
+            @click="closeFormModal"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
