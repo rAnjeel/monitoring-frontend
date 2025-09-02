@@ -705,12 +705,14 @@ function closeTestModal() {
             </button>
           </div>
 
+          <div class="text-right" style="margin:15px 0;" v-if="showSaveButton">
+            <button class="btn btn-success btn-sm" @click="saveUpdates">
               <i class="bi bi-save"></i> Save {{ selectedRows.length }} modification(s)
             </button>
           </div>
 
-          </div>
-          <div class="mismatch-grid-container" style="max-height: 380px; overflow: auto;">
+          <!-- Grid -->
+          <div style="max-height:380px; overflow:auto; margin-top:15px;">
             <MismatchGrid
               :rowData="syncResult.mismatches"
               :columnDefs="columnMismatchDefs"
