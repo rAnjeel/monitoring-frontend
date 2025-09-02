@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, syncSitesToVerify, testCredentialsList } from './services/credentials'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -43,91 +43,105 @@ const gridRefMismatch = ref(null)
 const gridRef = ref(null)
 const selectedRows = ref([])
 const lastUpdated = ref(null)
+const showSuccessModal = ref(false)
+const successMessage = ref('')
+const showTestModal = ref(false)
+const testResults = ref([])
+const allSelected = ref(false)
+const showPassword = ref(false);
 const formValues = ref({
   username: '',
   password: '',
   port: '',
 })
 
-
 const columnDefs = ref([
-  {
-    headerName: ' ',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    width: 50,
-    pinned: 'left'
-  },
-  { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
-  { field: 'Ip', headerName: 'IP', flex: 5},
-  { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
-  { field: 'siteUsername', headerName: 'Site Username', flex: 4 },
+  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true },
+
+  { field: 'Ip', headerName: 'IP', flex: 5 },
+
   { 
-    field: 'isSitePasswordVerified', 
-    headerName: 'Password', 
-    flex: 4,
-    cellRenderer: (p) => {
-      const ok = Boolean(p.value)
-      return ok 
-        ? '<span class="pill pill-success" style="color:#0b4650">Verified</span>' 
-        : '<span class="pill pill-neutral" style="color:#434d57">Unknown</span>'
-    }
+    field: 'CodeSite', 
+    headerName: 'Site', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-primary">${p.value ?? ''}</span>` 
   },
-  { field: 'sitePort', headerName: 'Port', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
-  { field: 'siteSShVersion', headerName: 'SSH', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
+
+  { field: 'siteUsername', headerName: 'Site Username', flex: 4 },
+
+  { 
+    field: 'sitePort', 
+    headerName: 'Port', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-info">${p.value ?? ''}</span>` 
+  },
+
+  { 
+    field: 'siteSShVersion', 
+    headerName: 'SSH', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-success">${p.value ?? ''}</span>` 
+  },
+
   {
     field: 'lastDateChange',
-    headerName: 'lastSuccessConnection',
-    excludeFromExport: true,
+    headerName: 'Last Date Change',
+    suppressCsvExport: true,
     flex: 6,
     valueFormatter: (params) => {
       if (!params.value) return '';
-      return formatDateFR(params.value); 
+      return formatDateFR(params.value);
     }
   },
+
   {
-    field: 'lastConnectionError', headerName: 'lastConnectionFailed', flex: 6, excludeFromExport: true,
-      valueFormatter: (params) => {
-      if (!params.value) return '';
-      return formatDateFR(params.value); 
-    }
-  },
-  {
-    field: 'toVerify', headerName: 'toVerify', flex: 3,
+    field: 'lastConnectionError',
+    headerName: 'Last Connection Failed',
+    flex: 6,
+    suppressCsvExport: true,
     valueFormatter: (params) => {
-      if (params.value === null || params.value === undefined) return '';
-      return params.value ? 'not verified' : 'verified';
-    },
-    // Renderer personnalisé avec le style
-    cellRenderer: (p) => `<span class="code-chip">${p.value ? 'not verified' : 'verified'}</span>`
-  }
-])
-const columnMismatchDefs = ref([
-  {
-    headerName: ' ',
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    pinned: 'left',
-    flex: 1,
+      if (!params.value) return '';
+      return formatDateFR(params.value);
+    }
   },
+])
+
+const columnMismatchDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2 },
-  { field: 'Ip', headerName: 'IP', flex: 5},
+  { field: 'Ip', headerName: 'IP', flex: 5 },
   { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
   { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true },
-  { field: 'usernameMatch', headerName: 'Username Match', flex: 4 , cellRenderer: (params) => {
+
+  { 
+    field: 'usernameMatch', 
+    headerName: 'Username Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }},
-  { field: 'passwordMatch', headerName: 'Password Match', flex: 4 , cellRenderer: (params) => {
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+
+  { 
+    field: 'passwordMatch', 
+    headerName: 'Password Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }},
-  { field: 'portMatch', headerName: 'Port Match', flex: 4 , cellRenderer: (params) => {
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+
+  { 
+    field: 'portMatch', 
+    headerName: 'Port Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
     }
   }
 ])
@@ -145,16 +159,12 @@ const defaultColDef = {
   },
   onCellContextMenu: (event) => {
       const menu = document.getElementById("customMenu");
-      // Sauvegarde de la cellule cliquée
       window.cellClicked = event;
       menu.style.display = "block";
       menu.style.position = "absolute";
-
-      // Positionner le menu au clic
       menu.style.left = event.event.pageX + "px";
       menu.style.top = event.event.pageY + "px";
       console.log('Context menu 1 opened at:', menu.style);
-
       
     }
   }
@@ -220,6 +230,12 @@ const contextMenuItemsRuntime = ref([])
 // Mismatch details modal state
 const showMismatchModal = ref(false)
 const currentMismatch = ref(null)
+const isFormComplete = computed(() => {
+  return formValues.value.username.trim() !== '' &&
+         formValues.value.password.trim() !== '' &&
+         formValues.value.port.toString().trim() !== ''
+})
+
 
 
 function handleViewDetails(id) {
@@ -274,6 +290,9 @@ function isMismatch(credential) {
   return syncResult.value?.mismatches?.some(m => m.id === credential.id)
 }
 
+function isMatch(credential) {
+  return syncResult.value?.matches?.some(m => m.id === credential.id)
+}
 
 function closeFormModal() {
   showModal.value = false
@@ -308,29 +327,6 @@ async function syncSites() {
   }
 }
 
-async function syncCredentialSitesToVerify() {
-  loading.value = true;
-  try {
-    syncResult.value = await syncSitesToVerify();    
-
-    if (
-      (!syncResult.value?.matches || syncResult.value.matches.length === 0) &&
-      (!syncResult.value?.mismatches || syncResult.value.mismatches.length === 0)
-    ) {
-      noMismatchMessage.value = 'Aucun mismatch détecté. Tous les credentials sont synchronisés.';
-      return;
-    }
-    if (gridRef.value?.api) {
-      showSyncSummary();
-    }
-    await loadCredentials();
-  } catch (err) {
-    error.value = err.message;
-  } finally {
-    loading.value = false;
-    lastUpdated.value = new Date()
-  }
-}
 
 function showSyncSummary() {
   if (!syncResult.value) return;
@@ -362,7 +358,11 @@ function showSyncSummary() {
 
 // removed unused legacy handler; ButtonRenderer now handles test clicks
 
-const rowClassRules = (params) => (isMismatch(params.data) ? 'row-mismatch' : '')
+const rowClassRules = (params) => {
+  if (isMismatch(params.data)) return 'row-mismatch'
+  if (isMatch(params.data)) return 'row-match'
+  return ''
+}
 
 
 function onSelectionChanged(event) {
@@ -378,35 +378,25 @@ const showSaveButton = ref(false)
 async function saveUpdates() {
   try {
     await bulkUpdateCredentials(updatedRows.value)
-    alert('Mise à jour réussie')
+    openSuccessModal('Mise à jour réussie')
     updatedRows.value = []
   } catch (err) {
-    alert('Échec de la mise à jour')
+    openSuccessModal('Échec de la mise à jour')
     console.error(err)
   }
 }
 
 
 function getSelectedRows() {
-  const rows = selectedRows.value
-  
-  if (rows.length === 0) {
-    console.log("Aucune ligne sélectionnée")
-    selectedRows.value = []
-    return
-  }
-
-  selectedRows.value = rows
-
   console.log("=== LIGNES SÉLECTIONNÉES ===")
-  rows.forEach((row, index) => {
+  selectedRows.value.forEach((row, index) => {
     console.log(`\nLigne ${index + 1}:`)
     console.log(`ID: ${row.id}`)
     console.log(`IP: ${row.Ip}`)
     console.log(`Site: ${row.CodeSite}`)
   })
 
-  console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+  console.log(`\nTotal: ${selectedRows.value.length} ligne(s) sélectionnée(s)`)
 
   showFormModal() 
 }
@@ -428,16 +418,18 @@ async function updateSelectedCredentials(formValues) {
     await bulkUpdateFormCredentials(selectedRows.value, formValues)
     console.log(`[updateSelectedCredentials] Mise à jour réussie pour ${selectedRows.value.length} ligne(s)`)
     onCustomMenuCloseClick()
-    alert('Mise à jour réussie')
-    // await syncSites()
+    openSuccessModal('Mise à jour réussie')
   } catch (err) {
     console.error('[updateSelectedCredentials] Erreur lors de la mise à jour :', err)
+  } finally {
+    await loadCredentials()
+    closeFormModal()
+    selectedRows.value = []
   }
 }
 
 
 async function runTestSelectedCredentials() {
-  closeFormModal()
   onCustomMenuCloseClick()
   if (!selectedRows.value.length) {
     console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
@@ -471,6 +463,38 @@ async function runTestSelectedCredentials() {
   }
 }
 
+async function runTestFormCredentials() {
+  onCustomMenuCloseClick()
+  if (!selectedRows.value.length) {
+    console.warn('[runTestSelectedCredentials] Aucune ligne sélectionnée')
+    return
+  }
+
+  loading.value = true
+  const selected = selectedRows.value
+  try {
+    console.log('[runTestSelectedCredentials] Lignes sélectionnées :', selectedRows.value)
+
+    syncResult.value  = await testCredentialsForm(selectedRows.value, formValues.value)
+
+    if (!syncResult.value || syncResult.value.length === 0) {
+      noMismatchMessage.value = 'Aucun résultat de test disponible.'
+      return
+    }
+
+    console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
+    showTestSummary() 
+
+  } catch (err) {
+    error.value = err.message
+    console.error('[runTestSelectedCredentials] Erreur lors du test de la liste de credentials :', err)
+  } finally {
+    loading.value = false
+    lastUpdated.value = new Date()
+    selectedRows.value = selected
+  }
+}
+
 
 
 function handleExport() {
@@ -480,7 +504,16 @@ function handleExport() {
 function confirmExport() {
   let name = exportFileName.value.trim()
   if (!name.endsWith('.csv')) name += '.csv'
-  exportAgGridToCsv(columnDefs.value, credentials.value, name)
+  const exportColumns = ref([
+    { field: 'Ip', headerName: 'Ip'},
+    { field: 'CodeSite', headerName: 'CodeSite'},
+    { field: 'siteUsername', headerName: 'siteUsername'},
+    { field: 'sitePassword', headerName: 'sitePassword'},
+    { field: 'sitePort', headerName: 'sitePort'},
+    { field: 'siteSShVersion', headerName: 'siteSShVersion'},
+  ])
+
+  exportAgGridToCsv(exportColumns.value, filteredCredentials.value, name)
   showExportModal.value = false
 }
 
@@ -493,22 +526,10 @@ function clearSearch() {
   filteredCredentials.value = credentials.value
 }
 
-function onCustomMenuUpdateClick() {
-  getSelectedRows()
-  const rows = gridRef.value.getSelectedRows?.() || []
-  
-  if (rows.length > 0) {
-    selectedRows.value = rows
-
+function onCustomMenuUpdateClick() {  
+  if (selectedRows.value.length > 0) {
     console.log("=== LIGNES SÉLECTIONNÉES ===")
-    rows.forEach((row, index) => {
-      console.log(`\nLigne ${index + 1}:`)
-      console.log(`ID: ${row.id}`)
-      console.log(`IP: ${row.Ip}`)
-      console.log(`Site: ${row.CodeSite}`)
-    })
-
-    console.log(`\nTotal: ${rows.length} ligne(s) sélectionnée(s)`)
+    console.log(`\nTotal: ${selectedRows.value.length} ligne(s) sélectionnée(s)`)
 
     showFormModal() 
   } else {
@@ -558,12 +579,75 @@ function onCustomMenuMismatchUpdateClick() {
     console.log("Aucune ligne sélectionnée pour la synchronisation");
   }
 }
+
+function onRowClicked(event) {
+  selectedRows.value = [event.data]
+  console.log("Row clicked & selected:", event.data)
+}
+
+
+function selectAllRows() {
+  selectedRows.value = filteredCredentials.value
+  console.log("All rows selected:", selectedRows.value)
+}
+
+function unselectAllRows() {
+  selectedRows.value = []
+  console.log("All rows unselected:", selectedRows.value)
+}
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    unselectAllRows()
+    allSelected.value = false
+  } else {
+    selectAllRows()
+    allSelected.value = true
+  }
+}
+
+function openSuccessModal(message) {
+  successMessage.value = message
+  showSuccessModal.value = true
+}
+function closeSuccessModal() {
+  showSuccessModal.value = false
+  successMessage.value = ''
+}
+
+function showTestSummary() {
+  const results = []
+
+  if (syncResult.value.mismatches.length === 0) {
+    results.push({
+      success: true,
+      message: "Tous les credentials ont réussi ✅"
+    })
+  } else {
+    syncResult.value.mismatches.forEach((m) => {
+      results.push({
+        success: false,
+        message: `Échec sur ${m.Ip}:${m.sitePort} - ${m.errorDescription || 'Erreur inconnue'}`
+      })
+    })
+  }
+
+  testResults.value = results
+  showTestModal.value = true
+}
+
+
+
+function closeTestModal() {
+  showTestModal.value = false
+}
+
 </script>
 
 <template>
   <!-- Header -->
   <div class="dashboard-header">
-    <div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center justify-content-between pt-5">
       <div>
         <div class="breadcrumbs">
           <span class="crumb">Monitoring</span>
@@ -579,22 +663,16 @@ function onCustomMenuMismatchUpdateClick() {
           <i v-else class="bi bi-arrow-repeat me-2"></i>
           Synchronize all sites
         </button>
-        <button class="btn btn-primary" @click="syncCredentialSitesToVerify" :disabled="loading">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          <i v-else class="bi bi-arrow-repeat me-2"></i>
-          Synchronize sites to verify
-        </button>
       </div>
     </div>
   </div>
 
-  <div v-if="loading" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3); z-index: 2000;">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-none bg-transparent">
-        <div class="alert alert-primary text-center mb-0" style="font-size:1.2rem;">
-          <div class="spinner-border text-primary mb-2" role="status" style="width:2.5rem; height:2.5rem;">
-            <span class="visually-hidden">Loading...</span>
-          </div>
+  <div v-if="loading" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3); z-index:2000;">
+    <div class="modal-dialog" style="margin-top:20%;">
+      <div class="modal-content" style="border:0; background:transparent; box-shadow:none;">
+        <div class="alert alert-info text-center" style="font-size:1.2rem; margin:0;">
+          <!-- Spinner CSS -->
+          <div class="spinner" style="margin:0 auto 15px;"></div>
           <div>Test SSH des sites en cours ...</div>
         </div>
       </div>
@@ -604,70 +682,77 @@ function onCustomMenuMismatchUpdateClick() {
   <!-- Message d'erreur -->
   <div v-if="error" class="alert alert-danger">
     {{ error }}
-    <button @click="loadCredentials" class="btn btn-sm btn-outline-danger ms-2">
+    <button @click="loadCredentials" class="btn btn-xs btn-danger" style="margin-left:8px;">
       Retry
     </button>
   </div>
 
-  <div class="p-3 rounded">
-    <div v-if="noMismatchMessage" class="alert alert-success mt-4">
+  <div class="p-4" style="padding:20px; border-radius:8px;">
+    <div v-if="noMismatchMessage" class="alert alert-success" style="margin-top:20px;">
       {{ noMismatchMessage }}
     </div>
 
-    <div v-if="syncResult?.mismatches?.length" class="mt-4">
-      <div class="card mt-3">
-      </div>
-    
-      <div class="card mt-4 shadow-sm d-flex justify-content-center pb-3 ">
-        <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
-          <h5 class="mb-0">Statistics</h5>
+    <div v-if="syncResult?.mismatches?.length" style="margin-top:20px;">
+      <div class="panel" style="padding:20px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+
+        <!-- Header Stats -->
+        <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+          <h4 class="panel-title" style="margin:0;">Statistics</h4>
           <small class="text-muted">Synced: {{ matchedCount }} / {{ totalSites }}</small>
         </div>
-        <div class="card-body">
-            <div class="kpi-grid">
-              <div class="kpi-card safe" style="transform: translateY(6px)">
-                <div>
-                  <div class="label">Total Sites Synced</div>
-                  <div class="value">{{ totalSites }}</div>
-                </div>
-                <i class="bi bi-hdd-network text-primary" style="font-size: 1.5rem;"></i>
-              </div>
-              <div class="kpi-card teal" style="transform: translateY(6px)">
-                <div>
-                  <div class="label">Matches</div>
-                  <div class="value">{{ matchedCount }}</div>
-                </div>
-                <i class="bi bi-shield-check text-primary" style="font-size: 1.5rem;"></i>
-              </div>
-              <div class="kpi-card warn" style="transform: translateY(6px)">
-                <div>
-                  <div class="label">Mismatches</div>
-                  <div class="value">{{ mismatchCount }}</div>
-                </div>
-                <i class="bi bi-shield-exclamation text-warning" style="font-size: 1.5rem;"></i>
-              </div>
-            </div>
-          <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" />
-        </div>
-      </div>
 
-      <div class="card mt-4 shadow-sm">
-        <div class="card-header bg-danger text-white d-flex align-items-center justify-content-between text-uppercase">
-          <h5 class="mb-0">Mismatches Sites ({{ syncResult.mismatches.length }})</h5>
+        <div class="panel-body">
+          <!-- KPIs -->
+          <div class="kpi-grid" style="display:flex; gap:15px; margin-bottom:20px;">
+            <div class="kpi-card safe" style="flex:1; padding:10px; border-radius:8px; background:#f8f9fa; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+              <div>
+                <div class="label">Total Sites Synced</div>
+                <div class="value">{{ totalSites }}</div>
+              </div>
+              <i class="bi bi-hdd-network text-primary" style="font-size:1.5rem;"></i>
+            </div>
+
+            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#e6f7f9; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+              <div>
+                <div class="label">Matches</div>
+                <div class="value">{{ matchedCount }}</div>
+              </div>
+              <i class="bi bi-shield-check text-primary" style="font-size:1.5rem;"></i>
+            </div>
+
+            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#fff3cd; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+              <div>
+                <div class="label">Mismatches</div>
+                <div class="value">{{ mismatchCount }}</div>
+              </div>
+              <i class="bi bi-shield-exclamation text-warning" style="font-size:1.5rem;"></i>
+            </div>
+          </div>
+
+          <!-- Stats Rings
+          <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" /> -->
         </div>
-        <div class="card-body">
-          <div class="text-end mt-3 justify-content-center m-3">
-            <button class="btn btn-m btn-primary" @click="getSelectedRows">
-              <i class="bi bi-pencil-square">Update Credentials</i>
+
+        <!-- Sites Issues -->
+        <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+          <h4 class="panel-title" style="margin:0;">Sites Issues ({{ syncResult.mismatches.length }})</h4>
+        </div>
+
+        <div class="panel-body">
+          <div class="text-right" style="margin:15px 0;">
+            <button class="btn btn-primary btn-sm" @click="getSelectedRows">
+              <i class="bi bi-pencil-square"></i> Update Credentials
             </button>
-          <div class="text-end mt-3 justify-content-center m-3" v-if="showSaveButton">
-            <button class="btn btn-success" @click="saveUpdates">
+          </div>
+
+          <div class="text-right" style="margin:15px 0;" v-if="showSaveButton">
+            <button class="btn btn-success btn-sm" @click="saveUpdates">
               <i class="bi bi-save"></i> Save {{ selectedRows.length }} modification(s)
             </button>
           </div>
 
-          </div>
-          <div class="mismatch-grid-container" style="max-height: 380px; overflow: auto;">
+          <!-- Grid -->
+          <div style="max-height:380px; overflow:auto; margin-top:15px;">
             <MismatchGrid
               :rowData="syncResult.mismatches"
               :columnDefs="columnMismatchDefs"
@@ -675,6 +760,7 @@ function onCustomMenuMismatchUpdateClick() {
               :getRowClass="rowClassRules"
               @ready="onMismatchGridReady"
               @selectionChanged="onSelectionChanged"
+              @rowClicked="onRowClicked"
             />
           </div>
         </div>
@@ -683,82 +769,133 @@ function onCustomMenuMismatchUpdateClick() {
   </div>
 
   <!-- Menu contextuel custom -->
-<ul id="customMenu" 
-    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1000;">
-  <li id="menu-close" style="cursor:pointer; text-align:right;">
-    <button class="btn" type="button" id="btn-close-menu" @click="onCustomMenuCloseClick">
-      <i class="bi bi-x"></i>
-    </button>
-  </li>
-  <li id="menu-delete" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">Update</button>
-  </li>
-  <li id="menu-sync" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
-  </li>
-</ul>
-
-<!-- Custom menu pour mismatch -->
-<ul id="customMenuMismatch" 
-    style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); list-style:none; padding:5px; margin:0; z-index:1;">
-  <li id="menu-close-mismatch" style="cursor:pointer; text-align:right;">
-    <button class="btn" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
-      <i class="bi bi-x"></i>
-    </button>
-  </li>
-  <li id="menu-details-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">Show details</button>
-  </li>
-  <li id="menu-delete-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">Update</button>
-  </li>
-  <li id="menu-sync-mismatch" style="padding:5px; cursor:pointer;">
-    <button class="btn btn-light btn-sm w-100" type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">Synchronize</button>
-  </li>
-</ul>
-
-
-
-<div class="p-3 rounded ">
-  <div class="card mt-3 p-4">
-    <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
-      <h5 class="mb-0">List Sites <span class="badge bg-light text-primary ms-2">{{ filteredCredentials.length }}</span></h5>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary" @click="handleExport">
-          <i class="bi bi-download"></i> Export
-        </button>
-        <button class="btn btn-ghost" @click="loadCredentials" :disabled="loading">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          <i v-else class="bi bi-arrow-clockwise me-2"></i>
-          Reload
-        </button>
-      </div>
-    </div>
+  <ul id="customMenu" class="mb-2 small"
+      style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
     
-    <div class="row g-3 p-3 align-items-center">
-      <div class="col-12 col-lg-6">
-        <div class="input-group">
-          <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-          <input
-            v-model="searchQuery"
-            class="form-control"
-            placeholder="Search by ID, IP, Site, Username, Port..."
-            @input="applySearch"
-          />
-          <button class="btn btn-outline-secondary" v-if="searchQuery" @click="clearSearch">Clear</button>
+    <li class="mb-1">
+      <button class="btn btn-xs btn-link text-muted pull-right" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuCloseClick">
+        <span class="glyphicon glyphicon-remove"></span>
+      </button>
+    </li>
+
+    <li id="menu-delete" style="padding:2px;">
+      <button class="btn btn-xs btn-default btn-block text-left" 
+              type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
+        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
+      </button>
+    </li>
+
+    <li id="menu-sync" style="padding:2px;">
+      <button class="btn btn-xs btn-default btn-block text-left" 
+              type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+        <span class="glyphicon glyphicon-flash" style="margin-right:5px;"></span> Test connexion
+      </button>
+    </li>
+  </ul>
+
+  <!-- Custom menu mismatch -->
+  <ul id="customMenuMismatch" class="mb-2 small"
+      style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
+    
+    <li class="mb-1">
+      <button class="btn btn-xs btn-link text-muted pull-right" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
+        <span class="glyphicon glyphicon-remove"></span>
+      </button>
+    </li>
+
+    <li id="menu-details-mismatch" style="padding:2px;">
+      <button class="btn btn-xs btn-default btn-block text-left"
+              type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
+        <span class="glyphicon glyphicon-info-sign" style="margin-right:5px;"></span> Show details
+      </button>
+    </li>
+
+    <li id="menu-delete-mismatch" style="padding:2px;">
+      <button class="btn btn-xs btn-default btn-block text-left"
+              type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
+        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
+      </button>
+    </li>
+
+    <li id="menu-sync-mismatch" style="padding:2px;">
+      <button class="btn btn-xs btn-default btn-block text-left"
+              type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+        <span class="glyphicon glyphicon-flash" style="margin-right:5px;"></span> Test connexion
+      </button>
+    </li>
+  </ul>
+
+
+
+  <div class="p-4 rounded">
+    <div class="panel panel-default p-4 shadow-sm">
+      <div class="panel-heading text-uppercase" style="display: flex; align-items: center; justify-content: space-between;">
+        <h5 class="mb-0">
+          List Sites 
+          <span class="badge">{{ filteredCredentials.length }}</span>
+        </h5>
+        <div class="btn-group" style="display: flex;">
+          <!-- Export -->
+          <button class="btn btn-default" @click="handleExport" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-download-alt"></span> Export
+          </button>
+
+          <button class="btn btn-default" @click="$router.push('/import-csv')" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-upload"></span> Import CSV
+          </button>
+
+
+          <!-- Select/Unselect All -->
+          <button class="btn btn-default" @click="toggleSelectAll" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-check"></span>
+            {{ allSelected ? 'Unselect All' : 'Select All' }}
+          </button>
+
+          <!-- Reload -->
+          <button class="btn btn-link" @click="loadCredentials" :disabled="loading" style="border-radius: 50px;">
+            <span v-if="loading" class="glyphicon glyphicon-refresh spinning"></span>
+            <span v-else class="glyphicon glyphicon-repeat"></span>
+            Reload
+          </button>
         </div>
       </div>
-      <div class="col-12 col-lg-6 text-lg-end">
-        <small class="text-muted">Showing {{ filteredCredentials.length }} of {{ totalSites }}</small>
-      </div>
-    </div>
 
-    <div v-if="!filteredCredentials.length && !loading" class="p-4 text-center text-muted">
-      No results. Try adjusting your search.
+      <div class="row" style="margin: 15px 0;">
+        <!-- Barre de recherche -->
+        <div class="col-sm-8">
+          <div class="input-group">
+            <span class="input-group-addon">
+              <i class="glyphicon glyphicon-search"></i>
+            </span>
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="form-control"
+              placeholder="Search by ID, IP, Site, Username, Port..."
+              @input="applySearch"
+            />
+            <span class="input-group-btn" v-if="searchQuery">
+              <button class="btn btn-danger" @click="clearSearch">
+                <i class="glyphicon glyphicon-remove"></i> Clear
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <!-- Sélection d'éléments -->
+        <div class="col-sm-4 text-right" v-if="selectedRows.length">
+          <span class="label label-info" style="font-size: 12px; padding: 6px 10px;">
+            Selected rows: {{ selectedRows.length }}
+          </span>
+        </div>
       </div>
-      
-    <div v-else class="col-12">
-        <div class="card-body p-0">
+
+      <div v-if="!filteredCredentials.length && !loading" class="p-4 text-center text-muted">
+        No results. Try adjusting your search.
+      </div>
+          
+      <div v-else class="col-xs-12">
+        <div class="panel-body p-4 menu-grid-container">
           <MainGrid
             ref="gridRef"
             :rowData="filteredCredentials"
@@ -767,11 +904,12 @@ function onCustomMenuMismatchUpdateClick() {
             :getRowClass="rowClassRules"
             @ready="onGridReady"
             @selection-changed="onSelectionChanged"
+            @rowClicked="onRowClicked"
           />
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Runtime context menu for mismatch grid click -->
   <div
@@ -790,21 +928,28 @@ function onCustomMenuMismatchUpdateClick() {
     </div>
   </div>
 
+  <!-- Modal Mismatch (Bootstrap 3.4.1) -->
   <div
     v-if="showMismatchModal"
-    class="modal fade show d-block"
+    class="modal fade in"
     tabindex="-1"
-    style="background: rgba(0, 0, 0, 0.3)"
+    style="display:block; background: rgba(0, 0, 0, 0.3);"
   >
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header bg-warning">
-          <h5 class="modal-title">Mismatch details- Site #{{ currentMismatch?.id }}</h5>
-          <button type="button" class="btn-close" @click="showMismatchModal = false"></button>
+        
+        <!-- Header -->
+        <div class="modal-header" style="background-color:#f0ad4e; color:#fff;">
+          <button type="button" class="close" @click="showMismatchModal = false">&times;</button>
+          <h4 class="modal-title">
+            Mismatch details - Site #{{ currentMismatch?.id }}
+          </h4>
         </div>
+
+        <!-- Body -->
         <div class="modal-body">
           <div class="alert alert-warning">
-            <h6>Problemes detected :</h6>
+            <h5>Problemes detected :</h5>
             <ul>
               <li v-if="!currentMismatch?.usernameMatch">❌ Username mismatch</li>
               <li v-if="!currentMismatch?.passwordMatch">❌ Password mismatch</li>
@@ -812,72 +957,216 @@ function onCustomMenuMismatchUpdateClick() {
             </ul>
           </div>
           <div class="alert alert-info">
-            <h6>Recommended actions :</h6>
+            <h5>Recommended actions :</h5>
             <p>Please check and update the site information</p>
           </div>
         </div>
+
+        <!-- Footer -->
         <div class="modal-footer">
           <button class="btn btn-primary" @click="showMismatchModal = false">Close</button>
         </div>
+
       </div>
     </div>
   </div>
 
 
-  <!-- Modal d'édition -->
+  <!-- Modal d'édition (Bootstrap 3.4.1) -->
   <div
     v-if="showModal"
-    class="modal fade show d-block"
+    class="modal fade in"
     tabindex="-1"
-    style="background: rgba(0, 0, 0, 0.3)"
+    style="display: block; background: rgba(0,0,0,0.3);"
   >
+    <div class="modal-dialog" style="max-width: 400px;">
+      <div class="modal-content" style="box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
+        
+        <!-- Header -->
+        <div class="modal-header text-center">
+          <button type="button" class="close" @click="closeFormModal">&times;</button>
+          <h4 class="modal-title text-uppercase">
+            <i class="bi bi-pencil-square text-success"></i> Update Sites
+          </h4>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <div class="form-group">
+            <label>IP (Selected sites)</label>
+            <textarea
+              class="form-control"
+              rows="2"
+              readonly
+            >{{ selectedRows.map(row => row.Ip).join('\n') }}</textarea>
+          </div>
+          <div class="form-group">
+            <label>siteUsername</label>
+            <input
+              v-model="formValues.username"
+              class="form-control"
+              type="text"
+            />
+          </div>
+          <div class="form-group" style="position: relative;">
+            <label>sitePassword</label>
+            <input
+              v-model="formValues.password"
+              :type="showPassword ? 'text' : 'password'"
+              class="form-control"
+              style="padding-right: 35px;"
+            />
+            <span
+              class="glyphicon"
+              :class="showPassword ? 'glyphicon-eye-close' : 'glyphicon-eye-open'"
+              style="position: absolute; right: 10px; top: 27px; cursor: pointer; color: #777;"
+              @click="showPassword = !showPassword"
+            ></span>
+          </div>
+          <div class="form-group">
+            <label>sitePort</label>
+            <input
+              v-model="formValues.port"
+              class="form-control"
+              type="number"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer text-center">
+          <button
+            class="btn btn-success"
+            @click="runTestFormCredentials()"
+            :disabled="!isFormComplete"
+          >
+            Test
+          </button>
+          <button
+            class="btn btn-success"
+            @click="updateSelectedCredentials(formValues)"
+          >
+            Update
+          </button>
+          <button
+            class="btn btn-default"
+            @click="closeFormModal"
+          >
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Export CSV -->
+  <div v-if="showExportModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title text-uppercase">Update sites</h5>
-          <button type="button" class="btn-close" @click="closeFormModal"></button>
+          <button type="button" class="close" @click="cancelExport">&times;</button>
+          <h4 class="modal-title">Exporter en CSV</h4>
         </div>
         <div class="modal-body">
-          <div class="mb-2">
-            <label>siteUsername</label><input v-model="formValues.siteUsername" class="form-control" type="text" />
-          </div>
-          <div class="mb-2">
-            <label>sitePassword</label><input v-model="formValues.sitePassword" class="form-control" type="password" />
-          </div>
-          <div class="mb-2">
-            <label>sitePort</label><input v-model="formValues.sitePort" class="form-control" type="number" />
+          <div class="form-group">
+            <label for="csvFileName">Nom du fichier :</label>
+            <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-success" @click="runTestSelectedCredentials()">
-            Test
-          </button>
-          <button class="btn btn-success" @click="updateSelectedCredentials(formValues)">
-            Update selected lines
-          </button>
-          <button class="btn btn-secondary" @click="closeFormModal">Cancel</button>
+          <button class="btn btn-default" @click="cancelExport">Annuler</button>
+          <button class="btn btn-success" @click="confirmExport">Exporter</button>
         </div>
       </div>
     </div>
   </div>
 
-<!-- Modal Export CSV -->
-<div v-if="showExportModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3)">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Exporter en CSV</h5>
-        <button type="button" class="btn-close" @click="cancelExport"></button>
-      </div>
-      <div class="modal-body">
-        <label for="csvFileName">Nom du fichier :</label>
-        <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="cancelExport">Annuler</button>
-        <button class="btn btn-success" @click="confirmExport">Exporter</button>
+  <!-- Modal Success -->
+  <div v-if="showSuccessModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
+    <div class="modal-dialog" style="max-width:420px;">
+      <div
+        class="modal-content text-center"
+        style="
+          padding: 25px;
+          border:0;
+          border-radius:12px;
+          background: linear-gradient(135deg,#ffffffcc,#f8f9facc);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        "
+      >
+        <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+        <h4 style="margin-top:15px; font-weight:bold;">Result message</h4>
+        <p class="text-muted" style="margin-bottom:20px;">{{ successMessage }}</p>
+        <button class="btn btn-success" style="padding:6px 20px; border-radius:25px;" @click="closeSuccessModal">
+          OK
+        </button>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Modal Test -->
+  <div v-if="showTestModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
+    <div class="modal-dialog" style="max-width:600px;">
+      <div
+        class="modal-content"
+        style="
+          padding:25px;
+          border:0;
+          border-radius:12px;
+          background: linear-gradient(135deg,#ffffffcc,#f8f9facc);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        "
+      >
+        <div class="text-center" style="margin-bottom:20px;">
+          <i class="bi bi-info-circle-fill text-primary" style="font-size:2.2rem;"></i>
+          <h4 style="margin-top:10px; font-weight:bold;">Résultats du test</h4>
+          <p class="text-muted">Voici les résultats pour les credentials testés :</p>
+        </div>
+
+        <div v-if="testResults.length">
+          <ul class="list-group" style="margin-bottom:20px;">
+            <li
+              v-for="(result, index) in testResults"
+              :key="index"
+              class="list-group-item"
+              style="display:flex; justify-content:space-between; align-items:center;"
+            >
+              <div>
+                <div style="font-weight:600;">Credential {{ index + 1 }}</div>
+                <div class="text-muted small">{{ result.message || 'Aucun message.' }}</div>
+              </div>
+              <span
+                class="badge"
+                :style="{
+                  backgroundColor: result.success ? '#28a745' : '#dc3545',
+                  color: '#fff'
+                }"
+              >
+                {{ result.success ? 'Succès' : 'Échec' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div v-else class="text-center text-muted">
+          Aucun résultat à afficher.
+        </div>
+
+        <div class="text-center">
+          <button
+            class="btn btn-primary"
+            style="padding:6px 20px; border-radius:25px;"
+            @click="closeTestModal"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 </template>

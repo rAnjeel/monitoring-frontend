@@ -1,7 +1,7 @@
-import axios from 'axios'
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 })
 
 export function mergeCredentials(existing, imported) {
@@ -73,28 +73,6 @@ export function exportContactsToCSV(list) {
   URL.revokeObjectURL(url)
 }
 
-export async function syncCredentials() {
-  try {
-    console.log('[GetCredentials] Début du test de synchronisation des credentials...');
-    const response = await api.get('/credentials/sync')
-    return response.data
-  } catch (error) {
-    console.error('[GetCredentials] Erreur lors de la récupération:', error)
-    throw new Error('Impossible de charger les credentials')
-  }
-}
-
-export async function syncSitesToVerify() {
-  try {
-    console.log('[GetCredentials] Début du test de synchronisation des credentials a verifier...');
-    const response = await api.get('/credentials/sync/to-verify')
-    return response.data
-  } catch (error) {
-    console.error('[GetCredentials] Erreur lors de la récupération des sites:', error)
-    throw new Error('Impossible de charger les credentials des sites a vérifier')
-  }
-}
-
 export async function bulkUpdateCredentials(updatedRows) {
   try {
     const results = [];
@@ -142,9 +120,13 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
   try {
     const results = [];
 
-    // Vérification des champs du formulaire
-    const { siteUsername, sitePassword, sitePort } = formValues || {};
-    if (!siteUsername && !sitePassword && !sitePort) {
+    if (!formValues) {
+      throw new Error('Aucune donnée du formulaire à mettre à jour');
+    }
+
+    const { username, password, port } = formValues;
+
+    if (!username && !password && !port) {
       throw new Error('Aucune donnée du formulaire à mettre à jour');
     }
 
@@ -152,23 +134,17 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
       const id = row.id;
       if (!id) continue;
 
-      // Récupérer l'existant
       const { data: existing } = await api.get(`/credentials/${id}`);
 
-      // Construire les données à mettre à jour
       const updated = {
         ...existing,
-        ...(siteUsername && { siteUsername }),
-        ...(sitePassword && { sitePassword, isSitePasswordVerified: 1 }),
-        ...(sitePort && { sitePort }),
+        ...(username && { siteUsername: username }),
+        ...(password && { sitePassword: password }),
+        ...(port && { sitePort: Number(port) }),
         lastDateChange: new Date().toISOString()
       };
 
-      // Envoi PUT
-      const { data: response } = await api.put(
-        `/credentials/solve/${id}`,
-        updated
-      );
+      const { data: response } = await api.put(`/credentials/solve/${id}`, updated);
 
       results.push(response);
     }
@@ -180,13 +156,14 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
     };
 
   } catch (error) {
-    console.error('[bulkUpdateCredentials] Erreur:', error);
+    console.error('[bulkUpdateFormCredentials] Erreur:', error);
     return {
       success: false,
       error: error.message || 'Échec de la mise à jour des credentials'
     };
   }
 }
+
 
 export async function testCredentialsList(selectedRows) {
   try {
@@ -206,7 +183,7 @@ export async function testCredentialsList(selectedRows) {
     }
 
     //Envoyer la liste complète pour test
-    const response = await api.post(`/credentials/sync/list`, credentialsData)
+    const response = await api.post(`/credentials/sync/database`, credentialsData)
 
     return response.data
   } catch (error) {
@@ -218,6 +195,63 @@ export async function testCredentialsList(selectedRows) {
   }
 }
 
+export async function testCredentialsForm(selectedRows, formValues) {
+  try {
+    if (!selectedRows?.length) {
+      return { success: false, error: 'Aucune ligne sélectionnée' }
+    }
+
+    if (!formValues) {
+      throw new Error('Aucune donnée du formulaire à tester')
+    }
+
+    const { username, password, port } = formValues
+    if (!username && !password && !port) {
+      throw new Error('Aucune donnée du formulaire à tester')
+    }
+
+    const credentialsData = []
+
+    for (const row of selectedRows) {
+      const id = row.id
+      if (!id) continue
+
+      const { data: existing } = await api.get(`/credentials/${id}`)
+
+      const updated = {
+        ...existing,
+        ...(username && { siteUsername: username }),
+        ...(password && { sitePassword: password }),
+        ...(port && { sitePort: Number(port) }),
+      }
+
+      credentialsData.push(updated)
+    }
+
+    // Envoi pour test
+    const response = await api.post(`/credentials/sync/form`, credentialsData)
+    console.log('[testCredentialsForm] Réponse du serveur :', response)
+    return response.data
+
+  } catch (error) {
+    console.error('[testCredentialsForm] Erreur:', error)
+    return {
+      success: false,
+      error: error.message || 'Échec du test de la liste de credentials',
+    }
+  }
+}
+
+export async function syncCredentials() {
+  try {
+    console.log('[GetCredentials] Début du test de synchronisation des credentials...');
+    const response = await api.get('/credentials/sync')
+    return response.data
+  } catch (error) {
+    console.error('[GetCredentials] Erreur lors de la récupération:', error)
+    throw new Error('Impossible de charger les credentials')
+  }
+}
 
 
 export async function getHistoricCredentials() {

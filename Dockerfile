@@ -2,24 +2,37 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Installer les dépendances
 COPY package*.json ./
-RUN npm ci
+RUN npm i
 
-COPY . .
-# Ensure env variables are available at build time for Vite
+COPY . ./
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
+# Build initial du frontend
 RUN npm run build
 
-# --- Nginx stage ---
-FROM nginx:alpine
+# --- Production / Dev stage ---
+FROM node:20-alpine
+WORKDIR /app
 
-# Copy build output
-COPY --from=build /app/dist /usr/share/nginx/html
+# Installer runtime + PM2 + concurrently
+COPY package*.json ./
+RUN npm install --omit=dev express@^4.18.2 ejs pm2 concurrently
 
-# Copy nginx config for SPA
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copier le build frontend et serveur
+COPY --from=build /app/dist ./dist
+COPY server.js ./server.js
+COPY views ./views
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+RUN npm i
+
+# Exposer le port pour Express
+EXPOSE 8080
+
+# --- Commande pour dev/prod ---
+# Dev : rebuild automatique du frontend
+# Prod : sert simplement le dist via PM2
+CMD ["npm", "run", "dev"]
+

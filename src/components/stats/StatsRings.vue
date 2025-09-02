@@ -20,37 +20,47 @@ function ringStyle(pct) {
 </script>
 
 <template>
-  <div class="card mt-4 d-flex justify-content-center pb-3 ">
-    
-    <div class="card-body">
-      <div class="row g-3 align-items-stretch text-center">
+  <div class="panel panel-default" style="margin-top:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    <div class="panel-body text-center">
+      <div class="row" style="margin-bottom:15px;">
+        
+        <!-- Username -->
         <div class="col-md-4">
           <div class="ring" :style="ringStyle(props.usernamePct)">
-            <span class="ring-icon bi bi-person-check" aria-hidden="true"></span>
+            <span class="ring-icon glyphicon glyphicon-user"></span>
             <span class="ring-value">{{ props.usernamePct }}%</span>
           </div>
           <div class="ring-label">Valid Usernames</div>
-          <div class="ring-value-top gradient" :style="ringStyle(props.usernamePct)">{{ props.usernamePct }}%</div>
+          <div class="ring-value-top gradient" :style="ringStyle(props.usernamePct)">
+            {{ props.usernamePct }}%
+          </div>
         </div>
+
+        <!-- Password -->
         <div class="col-md-4">
           <div class="ring" :style="ringStyle(props.passwordPct)">
-            <span class="ring-icon bi bi-shield-lock" aria-hidden="true"></span>
+            <span class="ring-icon glyphicon glyphicon-lock"></span>
             <span class="ring-value">{{ props.passwordPct }}%</span>
           </div>
           <div class="ring-label">Valid Passwords</div>
-          <div class="ring-value-top gradient" :style="ringStyle(props.passwordPct)">{{ props.passwordPct }}%</div>
+          <div class="ring-value-top gradient" :style="ringStyle(props.passwordPct)">
+            {{ props.passwordPct }}%
+          </div>
         </div>
+
+        <!-- Port -->
         <div class="col-md-4">
           <div class="ring" :style="ringStyle(props.portPct)">
-            <span class="ring-icon bi bi-ethernet" aria-hidden="true"></span>
+            <span class="ring-icon glyphicon glyphicon-hdd"></span>
             <span class="ring-value">{{ props.portPct }}%</span>
           </div>
           <div class="ring-label">Valid Ports</div>
-          <div class="ring-value-top gradient" :style="ringStyle(props.portPct)">{{ props.portPct }}%</div>  
+          <div class="ring-value-top gradient" :style="ringStyle(props.portPct)">
+            {{ props.portPct }}%
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 </template>
-
-
