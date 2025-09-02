@@ -122,7 +122,7 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
                 <div class="dz-inner">
                   <i class="glyphicon glyphicon-upload" style="font-size:2rem;"></i>
                   <div class="dz-title" style="margin-top:10px;">Glissez-déposez votre fichier CSV ici</div>
-                  <div class="dz-sub" style="color:#666;">ou cliquez pour parcourir</div>
+                  <div class="dz-sub" style="color:#667;">ou cliquez pour parcourir</div>
                   <input ref="fileInput" type="file" accept=".csv" @change="handleFileChange" hidden />
                 </div>
               </div>
@@ -137,6 +137,9 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
 
               <!-- Buttons -->
               <div style="margin-top:15px;">
+                <button class="btn btn-default" @click="$router.push('/')" style="margin-right:6px; border-radius: 50px;">
+                  <span class="glyphicon glyphicon-home"></span>
+                </button>
                 <button class="btn btn-primary btn-sm" type="button" :disabled="!fileName || isImporting" @click="handleImport">
                   <span v-if="isImporting" class="glyphicon glyphicon-refresh spinning" style="margin-right:5px;"></span>
                   Importer

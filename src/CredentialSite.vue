@@ -48,6 +48,7 @@ const successMessage = ref('')
 const showTestModal = ref(false)
 const testResults = ref([])
 const allSelected = ref(false)
+const showPassword = ref(false);
 const formValues = ref({
   username: '',
   password: '',
@@ -164,7 +165,6 @@ const defaultColDef = {
       menu.style.left = event.event.pageX + "px";
       menu.style.top = event.event.pageY + "px";
       console.log('Context menu 1 opened at:', menu.style);
-      document.body.style.overflow = "hidden";
       
     }
   }
@@ -187,7 +187,6 @@ const defaultColDefMismatch = {
     menu.style.top = event.event.clientY + "px";
     menu.style.display = "block";
     console.log('Context menu 2 opened at:', menu.style);
-    document.body.style.overflow = "hidden";
   }
 }
 
@@ -541,13 +540,11 @@ function onCustomMenuUpdateClick() {
 
 function onCustomMenuCloseClick() {
   document.getElementById('customMenu').style.display = 'none';
-  document.body.style.overflow = "auto";
 }
 
 // Custom menu for mismatch grid
 function onCustomMenuMismatchCloseClick() {
   document.getElementById('customMenuMismatch').style.display = 'none';
-  document.body.style.overflow = "auto";
 }
 
 function onCustomMenuMismatchDetailsClick() {
@@ -732,12 +729,12 @@ function closeTestModal() {
             </div>
           </div>
 
-          <!-- Stats Rings -->
-          <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" />
+          <!-- Stats Rings
+          <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" /> -->
         </div>
 
         <!-- Sites Issues -->
-        <div class="panel-heading" style="background:#f8f9fa; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+        <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
           <h4 class="panel-title" style="margin:0;">Sites Issues ({{ syncResult.mismatches.length }})</h4>
         </div>
 
@@ -772,7 +769,6 @@ function closeTestModal() {
   </div>
 
   <!-- Menu contextuel custom -->
-<!-- Menu contextuel custom -->
   <ul id="customMenu" class="mb-2 small"
       style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
     
@@ -781,12 +777,14 @@ function closeTestModal() {
         <span class="glyphicon glyphicon-remove"></span>
       </button>
     </li>
+
     <li id="menu-delete" style="padding:2px;">
       <button class="btn btn-xs btn-default btn-block text-left" 
               type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
-        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update
+        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
       </button>
     </li>
+
     <li id="menu-sync" style="padding:2px;">
       <button class="btn btn-xs btn-default btn-block text-left" 
               type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
@@ -794,7 +792,6 @@ function closeTestModal() {
       </button>
     </li>
   </ul>
-
 
   <!-- Custom menu mismatch -->
   <ul id="customMenuMismatch" class="mb-2 small"
@@ -805,18 +802,21 @@ function closeTestModal() {
         <span class="glyphicon glyphicon-remove"></span>
       </button>
     </li>
+
     <li id="menu-details-mismatch" style="padding:2px;">
       <button class="btn btn-xs btn-default btn-block text-left"
               type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
         <span class="glyphicon glyphicon-info-sign" style="margin-right:5px;"></span> Show details
       </button>
     </li>
+
     <li id="menu-delete-mismatch" style="padding:2px;">
       <button class="btn btn-xs btn-default btn-block text-left"
               type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
         <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
       </button>
     </li>
+
     <li id="menu-sync-mismatch" style="padding:2px;">
       <button class="btn btn-xs btn-default btn-block text-left"
               type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
@@ -834,16 +834,27 @@ function closeTestModal() {
           List Sites 
           <span class="badge">{{ filteredCredentials.length }}</span>
         </h5>
-        <div class="btn-group" style="display: flex; gap: 6px;">
-          <button class="btn btn-default" @click="handleExport">
-            Export
+        <div class="btn-group" style="display: flex;">
+          <!-- Export -->
+          <button class="btn btn-default" @click="handleExport" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-download-alt"></span> Export
           </button>
-          <button class="btn btn-default" @click="toggleSelectAll">
+
+          <button class="btn btn-default" @click="$router.push('/import-csv')" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-upload"></span> Import CSV
+          </button>
+
+
+          <!-- Select/Unselect All -->
+          <button class="btn btn-default" @click="toggleSelectAll" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-check"></span>
             {{ allSelected ? 'Unselect All' : 'Select All' }}
           </button>
-          <button class="btn btn-link" @click="loadCredentials" :disabled="loading">
+
+          <!-- Reload -->
+          <button class="btn btn-link" @click="loadCredentials" :disabled="loading" style="border-radius: 50px;">
             <span v-if="loading" class="glyphicon glyphicon-refresh spinning"></span>
-            <span v-else><i class="bi bi-arrow-clockwise"></i></span>
+            <span v-else class="glyphicon glyphicon-repeat"></span>
             Reload
           </button>
         </div>
@@ -997,13 +1008,20 @@ function closeTestModal() {
               type="text"
             />
           </div>
-          <div class="form-group">
+          <div class="form-group" style="position: relative;">
             <label>sitePassword</label>
             <input
               v-model="formValues.password"
+              :type="showPassword ? 'text' : 'password'"
               class="form-control"
-              type="password"
+              style="padding-right: 35px;"
             />
+            <span
+              class="glyphicon"
+              :class="showPassword ? 'glyphicon-eye-close' : 'glyphicon-eye-open'"
+              style="position: absolute; right: 10px; top: 27px; cursor: pointer; color: #777;"
+              @click="showPassword = !showPassword"
+            ></span>
           </div>
           <div class="form-group">
             <label>sitePort</label>
