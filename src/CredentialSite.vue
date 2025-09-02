@@ -55,49 +55,92 @@ const formValues = ref({
 })
 
 const columnDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
-  { field: 'Ip', headerName: 'IP', flex: 5},
-  { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
+  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true },
+
+  { field: 'Ip', headerName: 'IP', flex: 5 },
+
+  { 
+    field: 'CodeSite', 
+    headerName: 'Site', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-primary">${p.value ?? ''}</span>` 
+  },
+
   { field: 'siteUsername', headerName: 'Site Username', flex: 4 },
-  { field: 'sitePort', headerName: 'Port', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
-  { field: 'siteSShVersion', headerName: 'SSH', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
+
+  { 
+    field: 'sitePort', 
+    headerName: 'Port', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-info">${p.value ?? ''}</span>` 
+  },
+
+  { 
+    field: 'siteSShVersion', 
+    headerName: 'SSH', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-success">${p.value ?? ''}</span>` 
+  },
+
   {
     field: 'lastDateChange',
-    headerName: 'lastDateChange',
-    excludeFromExport: true,
+    headerName: 'Last Date Change',
+    suppressCsvExport: true,
     flex: 6,
     valueFormatter: (params) => {
       if (!params.value) return '';
-      return formatDateFR(params.value); 
+      return formatDateFR(params.value);
     }
   },
+
   {
-    field: 'lastConnectionError', headerName: 'lastConnectionFailed', flex: 6, excludeFromExport: true,
-      valueFormatter: (params) => {
+    field: 'lastConnectionError',
+    headerName: 'Last Connection Failed',
+    flex: 6,
+    suppressCsvExport: true,
+    valueFormatter: (params) => {
       if (!params.value) return '';
-      return formatDateFR(params.value); 
+      return formatDateFR(params.value);
     }
   },
 ])
+
 const columnMismatchDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2 },
-  { field: 'Ip', headerName: 'IP', flex: 5},
+  { field: 'Ip', headerName: 'IP', flex: 5 },
   { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
   { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true },
-  { field: 'usernameMatch', headerName: 'Username Match', flex: 4 , cellRenderer: (params) => {
+
+  { 
+    field: 'usernameMatch', 
+    headerName: 'Username Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }},
-  { field: 'passwordMatch', headerName: 'Password Match', flex: 4 , cellRenderer: (params) => {
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+
+  { 
+    field: 'passwordMatch', 
+    headerName: 'Password Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }},
-  { field: 'portMatch', headerName: 'Port Match', flex: 4 , cellRenderer: (params) => {
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+
+  { 
+    field: 'portMatch', 
+    headerName: 'Port Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
     }
   }
 ])
