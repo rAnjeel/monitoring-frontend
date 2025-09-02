@@ -48,6 +48,7 @@ const successMessage = ref('')
 const showTestModal = ref(false)
 const testResults = ref([])
 const allSelected = ref(false)
+const showPassword = ref(false);
 const formValues = ref({
   username: '',
   password: '',
@@ -55,49 +56,92 @@ const formValues = ref({
 })
 
 const columnDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2, excludeFromExport: true },
-  { field: 'Ip', headerName: 'IP', flex: 5},
-  { field: 'CodeSite', headerName: 'Site', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
+  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true },
+
+  { field: 'Ip', headerName: 'IP', flex: 5 },
+
+  { 
+    field: 'CodeSite', 
+    headerName: 'Site', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-primary">${p.value ?? ''}</span>` 
+  },
+
   { field: 'siteUsername', headerName: 'Site Username', flex: 4 },
-  { field: 'sitePort', headerName: 'Port', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
-  { field: 'siteSShVersion', headerName: 'SSH', flex: 3, cellRenderer: (p) => `<span class="code-chip">${p.value ?? ''}</span>` },
+
+  { 
+    field: 'sitePort', 
+    headerName: 'Port', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-info">${p.value ?? ''}</span>` 
+  },
+
+  { 
+    field: 'siteSShVersion', 
+    headerName: 'SSH', 
+    flex: 3, 
+    cellRenderer: (p) => `<span class="label label-success">${p.value ?? ''}</span>` 
+  },
+
   {
     field: 'lastDateChange',
-    headerName: 'lastDateChange',
-    excludeFromExport: true,
+    headerName: 'Last Date Change',
+    suppressCsvExport: true,
     flex: 6,
     valueFormatter: (params) => {
       if (!params.value) return '';
-      return formatDateFR(params.value); 
+      return formatDateFR(params.value);
     }
   },
+
   {
-    field: 'lastConnectionError', headerName: 'lastConnectionFailed', flex: 6, excludeFromExport: true,
-      valueFormatter: (params) => {
+    field: 'lastConnectionError',
+    headerName: 'Last Connection Failed',
+    flex: 6,
+    suppressCsvExport: true,
+    valueFormatter: (params) => {
       if (!params.value) return '';
-      return formatDateFR(params.value); 
+      return formatDateFR(params.value);
     }
   },
 ])
+
 const columnMismatchDefs = ref([
   { field: 'id', headerName: 'ID', flex: 2 },
-  { field: 'Ip', headerName: 'IP', flex: 5},
+  { field: 'Ip', headerName: 'IP', flex: 5 },
   { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
   { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true },
-  { field: 'usernameMatch', headerName: 'Username Match', flex: 4 , cellRenderer: (params) => {
+
+  { 
+    field: 'usernameMatch', 
+    headerName: 'Username Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }},
-  { field: 'passwordMatch', headerName: 'Password Match', flex: 4 , cellRenderer: (params) => {
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+
+  { 
+    field: 'passwordMatch', 
+    headerName: 'Password Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
-    }},
-  { field: 'portMatch', headerName: 'Port Match', flex: 4 , cellRenderer: (params) => {
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+
+  { 
+    field: 'portMatch', 
+    headerName: 'Port Match', 
+    flex: 4, 
+    cellRenderer: (params) => {
       return params.value
-        ? '<span class="pill pill-success" style="color:#0b4650">OK</span>'
-        : '<span class="pill pill-danger" style="color:#7a1e28">Mismatch</span>'
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
     }
   }
 ])
@@ -121,7 +165,6 @@ const defaultColDef = {
       menu.style.left = event.event.pageX + "px";
       menu.style.top = event.event.pageY + "px";
       console.log('Context menu 1 opened at:', menu.style);
-      document.body.style.overflow = "hidden";
       
     }
   }
@@ -144,7 +187,6 @@ const defaultColDefMismatch = {
     menu.style.top = event.event.clientY + "px";
     menu.style.display = "block";
     console.log('Context menu 2 opened at:', menu.style);
-    document.body.style.overflow = "hidden";
   }
 }
 
@@ -498,13 +540,11 @@ function onCustomMenuUpdateClick() {
 
 function onCustomMenuCloseClick() {
   document.getElementById('customMenu').style.display = 'none';
-  document.body.style.overflow = "auto";
 }
 
 // Custom menu for mismatch grid
 function onCustomMenuMismatchCloseClick() {
   document.getElementById('customMenuMismatch').style.display = 'none';
-  document.body.style.overflow = "auto";
 }
 
 function onCustomMenuMismatchDetailsClick() {
@@ -627,13 +667,12 @@ function closeTestModal() {
     </div>
   </div>
 
-  <div v-if="loading" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3); z-index: 2000;">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-none bg-transparent">
-        <div class="alert alert-primary text-center mb-0" style="font-size:1.2rem;">
-          <div class="spinner-border text-primary mb-2" role="status" style="width:2.5rem; height:2.5rem;">
-            <span class="visually-hidden">Loading...</span>
-          </div>
+  <div v-if="loading" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3); z-index:2000;">
+    <div class="modal-dialog" style="margin-top:20%;">
+      <div class="modal-content" style="border:0; background:transparent; box-shadow:none;">
+        <div class="alert alert-info text-center" style="font-size:1.2rem; margin:0;">
+          <!-- Spinner CSS -->
+          <div class="spinner" style="margin:0 auto 15px;"></div>
           <div>Test SSH des sites en cours ...</div>
         </div>
       </div>
@@ -643,64 +682,77 @@ function closeTestModal() {
   <!-- Message d'erreur -->
   <div v-if="error" class="alert alert-danger">
     {{ error }}
-    <button @click="loadCredentials" class="btn btn-sm btn-outline-danger ms-2">
+    <button @click="loadCredentials" class="btn btn-xs btn-danger" style="margin-left:8px;">
       Retry
     </button>
   </div>
 
-  <div class="p-4 rounded">
-    <div v-if="noMismatchMessage" class="alert alert-success mt-4">
+  <div class="p-4" style="padding:20px; border-radius:8px;">
+    <div v-if="noMismatchMessage" class="alert alert-success" style="margin-top:20px;">
       {{ noMismatchMessage }}
     </div>
 
-    <div v-if="syncResult?.mismatches?.length" class="mt-4">
-      <div class="card p-4 shadow-sm d-flex justify-content-center pb-3 ">
-        <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
-          <h5 class="mb-0">Statistics</h5>
+    <div v-if="syncResult?.mismatches?.length" style="margin-top:20px;">
+      <div class="panel" style="padding:20px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+
+        <!-- Header Stats -->
+        <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+          <h4 class="panel-title" style="margin:0;">Statistics</h4>
           <small class="text-muted">Synced: {{ matchedCount }} / {{ totalSites }}</small>
         </div>
-        <div class="card-body">
-            <div class="kpi-grid">
-              <div class="kpi-card safe" style="transform: translateY(6px)">
-                <div>
-                  <div class="label">Total Sites Synced</div>
-                  <div class="value">{{ totalSites }}</div>
-                </div>
-                <i class="bi bi-hdd-network text-primary" style="font-size: 1.5rem;"></i>
+
+        <div class="panel-body">
+          <!-- KPIs -->
+          <div class="kpi-grid" style="display:flex; gap:15px; margin-bottom:20px;">
+            <div class="kpi-card safe" style="flex:1; padding:10px; border-radius:8px; background:#f8f9fa; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+              <div>
+                <div class="label">Total Sites Synced</div>
+                <div class="value">{{ totalSites }}</div>
               </div>
-              <div class="kpi-card teal" style="transform: translateY(6px)">
-                <div>
-                  <div class="label">Matches</div>
-                  <div class="value">{{ matchedCount }}</div>
-                </div>
-                <i class="bi bi-shield-check text-primary" style="font-size: 1.5rem;"></i>
-              </div>
-              <div class="kpi-card warn" style="transform: translateY(6px)">
-                <div>
-                  <div class="label">Mismatches</div>
-                  <div class="value">{{ mismatchCount }}</div>
-                </div>
-                <i class="bi bi-shield-exclamation text-warning" style="font-size: 1.5rem;"></i>
-              </div>
+              <i class="bi bi-hdd-network text-primary" style="font-size:1.5rem;"></i>
             </div>
-          <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" />
+
+            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#e6f7f9; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+              <div>
+                <div class="label">Matches</div>
+                <div class="value">{{ matchedCount }}</div>
+              </div>
+              <i class="bi bi-shield-check text-primary" style="font-size:1.5rem;"></i>
+            </div>
+
+            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#fff3cd; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+              <div>
+                <div class="label">Mismatches</div>
+                <div class="value">{{ mismatchCount }}</div>
+              </div>
+              <i class="bi bi-shield-exclamation text-warning" style="font-size:1.5rem;"></i>
+            </div>
+          </div>
+
+          <!-- Stats Rings
+          <StatsRings :usernamePct="usernamePct" :passwordPct="passwordPct" :portPct="portPct" /> -->
         </div>
-        <div class="card-header bg-danger text-white d-flex align-items-center justify-content-between text-uppercase">
-          <h5 class="mb-0">Sites Issues ({{ syncResult.mismatches.length }})</h5>
+
+        <!-- Sites Issues -->
+        <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+          <h4 class="panel-title" style="margin:0;">Sites Issues ({{ syncResult.mismatches.length }})</h4>
         </div>
-        <div class="card-body">
-          <div class="text-end mt-3 justify-content-center m-3">
-            <button class="btn btn-m btn-primary" @click="getSelectedRows">
-              <i class="bi bi-pencil-square">Update Credentials</i>
+
+        <div class="panel-body">
+          <div class="text-right" style="margin:15px 0;">
+            <button class="btn btn-primary btn-sm" @click="getSelectedRows">
+              <i class="bi bi-pencil-square"></i> Update Credentials
             </button>
-          <div class="text-end mt-3 justify-content-center m-3" v-if="showSaveButton">
-            <button class="btn btn-success" @click="saveUpdates">
+          </div>
+
+          <div class="text-right" style="margin:15px 0;" v-if="showSaveButton">
+            <button class="btn btn-success btn-sm" @click="saveUpdates">
               <i class="bi bi-save"></i> Save {{ selectedRows.length }} modification(s)
             </button>
           </div>
 
-          </div>
-          <div class="mismatch-grid-container" style="max-height: 380px; overflow: auto;">
+          <!-- Grid -->
+          <div style="max-height:380px; overflow:auto; margin-top:15px;">
             <MismatchGrid
               :rowData="syncResult.mismatches"
               :columnDefs="columnMismatchDefs"
@@ -717,102 +769,133 @@ function closeTestModal() {
   </div>
 
   <!-- Menu contextuel custom -->
-  <ul id="customMenu" class="mb-2 rounded small"
+  <ul id="customMenu" class="mb-2 small"
       style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
     
-    <li class="text-end mb-1">
-      <button class="btn btn-sm btn-link p-0 text-muted" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuCloseClick">
-        <i class="bi bi-x"></i>
+    <li class="mb-1">
+      <button class="btn btn-xs btn-link text-muted pull-right" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuCloseClick">
+        <span class="glyphicon glyphicon-remove"></span>
       </button>
     </li>
+
     <li id="menu-delete" style="padding:2px;">
-      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start" 
+      <button class="btn btn-xs btn-default btn-block text-left" 
               type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
-        <i class="bi bi-pencil-square me-2"></i> Update
+        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
       </button>
     </li>
+
     <li id="menu-sync" style="padding:2px;">
-      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start" 
+      <button class="btn btn-xs btn-default btn-block text-left" 
               type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-        <i class="bi bi-plug me-2"></i> Test connexion
+        <span class="glyphicon glyphicon-flash" style="margin-right:5px;"></span> Test connexion
       </button>
     </li>
   </ul>
 
   <!-- Custom menu mismatch -->
-  <ul id="customMenuMismatch" class="mb-2 rounded small"
+  <ul id="customMenuMismatch" class="mb-2 small"
       style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
     
-    <li class="text-end mb-1">
-      <button class="btn btn-sm btn-link p-0 text-muted" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
-        <i class="bi bi-x"></i>
+    <li class="mb-1">
+      <button class="btn btn-xs btn-link text-muted pull-right" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
+        <span class="glyphicon glyphicon-remove"></span>
       </button>
     </li>
+
     <li id="menu-details-mismatch" style="padding:2px;">
-      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start"
+      <button class="btn btn-xs btn-default btn-block text-left"
               type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
-        <i class="bi bi-info-circle me-2"></i> Show details
+        <span class="glyphicon glyphicon-info-sign" style="margin-right:5px;"></span> Show details
       </button>
     </li>
+
     <li id="menu-delete-mismatch" style="padding:2px;">
-      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start"
+      <button class="btn btn-xs btn-default btn-block text-left"
               type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
-        <i class="bi bi-pencil-square me-2"></i> Update
+        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
       </button>
     </li>
+
     <li id="menu-sync-mismatch" style="padding:2px;">
-      <button class="btn btn-sm btn-light w-100 d-flex align-items-center justify-content-start"
+      <button class="btn btn-xs btn-default btn-block text-left"
               type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-        <i class="bi bi-plug me-2"></i> Test connexion
+        <span class="glyphicon glyphicon-flash" style="margin-right:5px;"></span> Test connexion
       </button>
     </li>
   </ul>
 
 
 
-<div class="p-4 rounded pb">
-  <div class="card p-4 shadow-sm d-flex justify-content-center pb-3">
-    <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
-      <h5 class="mb-0">List Sites <span class="badge bg-light text-primary ms-2">{{ filteredCredentials.length }}</span></h5>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary" @click="handleExport">
-          <i class="bi bi-download"></i> Export
-        </button>
-        <button class="btn btn-outline-primary" @click="toggleSelectAll">
-          {{ allSelected ? 'Unselect All' : 'Select All' }}
-        </button>
-        <button class="btn btn-ghost" @click="loadCredentials" :disabled="loading">
-          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-          <i v-else class="bi bi-arrow-clockwise me-2"></i>
-          Reload
-        </button>
-      </div>
-    </div>
-    
-    <div class="row g-3 p-3 align-items-center">
-      <div class="col-12 col-lg-6">
-        <div class="input-group">
-          <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-          <input
-            v-model="searchQuery"
-            class="form-control"
-            placeholder="Search by ID, IP, Site, Username, Port..."
-            @input="applySearch"
-          />
-          <button class="btn btn-outline-secondary" v-if="searchQuery" @click="clearSearch">Clear</button>
+  <div class="p-4 rounded">
+    <div class="panel panel-default p-4 shadow-sm">
+      <div class="panel-heading text-uppercase" style="display: flex; align-items: center; justify-content: space-between;">
+        <h5 class="mb-0">
+          List Sites 
+          <span class="badge">{{ filteredCredentials.length }}</span>
+        </h5>
+        <div class="btn-group" style="display: flex;">
+          <!-- Export -->
+          <button class="btn btn-default" @click="handleExport" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-download-alt"></span> Export
+          </button>
+
+          <button class="btn btn-default" @click="$router.push('/import-csv')" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-upload"></span> Import CSV
+          </button>
+
+
+          <!-- Select/Unselect All -->
+          <button class="btn btn-default" @click="toggleSelectAll" style="margin-right:6px; border-radius: 50px;">
+            <span class="glyphicon glyphicon-check"></span>
+            {{ allSelected ? 'Unselect All' : 'Select All' }}
+          </button>
+
+          <!-- Reload -->
+          <button class="btn btn-link" @click="loadCredentials" :disabled="loading" style="border-radius: 50px;">
+            <span v-if="loading" class="glyphicon glyphicon-refresh spinning"></span>
+            <span v-else class="glyphicon glyphicon-repeat"></span>
+            Reload
+          </button>
         </div>
       </div>
-      <div class="col-12 col-lg-6 text-lg-end" v-if="selectedRows.length">
-        <small class="text-muted">Selected rows: {{ selectedRows.length }}</small>
-      </div>
-    </div>
 
-    <div v-if="!filteredCredentials.length && !loading" class="p-4 text-center text-muted">
-      No results. Try adjusting your search.
+      <div class="row" style="margin: 15px 0;">
+        <!-- Barre de recherche -->
+        <div class="col-sm-8">
+          <div class="input-group">
+            <span class="input-group-addon">
+              <i class="glyphicon glyphicon-search"></i>
+            </span>
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="form-control"
+              placeholder="Search by ID, IP, Site, Username, Port..."
+              @input="applySearch"
+            />
+            <span class="input-group-btn" v-if="searchQuery">
+              <button class="btn btn-danger" @click="clearSearch">
+                <i class="glyphicon glyphicon-remove"></i> Clear
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <!-- Sélection d'éléments -->
+        <div class="col-sm-4 text-right" v-if="selectedRows.length">
+          <span class="label label-info" style="font-size: 12px; padding: 6px 10px;">
+            Selected rows: {{ selectedRows.length }}
+          </span>
+        </div>
       </div>
-      
-    <div v-else class="col-12">
-        <div class="card-body p-4 menu-grid-container">
+
+      <div v-if="!filteredCredentials.length && !loading" class="p-4 text-center text-muted">
+        No results. Try adjusting your search.
+      </div>
+          
+      <div v-else class="col-xs-12">
+        <div class="panel-body p-4 menu-grid-container">
           <MainGrid
             ref="gridRef"
             :rowData="filteredCredentials"
@@ -823,10 +906,10 @@ function closeTestModal() {
             @selection-changed="onSelectionChanged"
             @rowClicked="onRowClicked"
           />
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Runtime context menu for mismatch grid click -->
   <div
@@ -845,21 +928,28 @@ function closeTestModal() {
     </div>
   </div>
 
+  <!-- Modal Mismatch (Bootstrap 3.4.1) -->
   <div
     v-if="showMismatchModal"
-    class="modal fade show d-block"
+    class="modal fade in"
     tabindex="-1"
-    style="background: rgba(0, 0, 0, 0.3)"
+    style="display:block; background: rgba(0, 0, 0, 0.3);"
   >
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header bg-warning">
-          <h5 class="modal-title">Mismatch details- Site #{{ currentMismatch?.id }}</h5>
-          <button type="button" class="btn-close" @click="showMismatchModal = false"></button>
+        
+        <!-- Header -->
+        <div class="modal-header" style="background-color:#f0ad4e; color:#fff;">
+          <button type="button" class="close" @click="showMismatchModal = false">&times;</button>
+          <h4 class="modal-title">
+            Mismatch details - Site #{{ currentMismatch?.id }}
+          </h4>
         </div>
+
+        <!-- Body -->
         <div class="modal-body">
           <div class="alert alert-warning">
-            <h6>Problemes detected :</h6>
+            <h5>Problemes detected :</h5>
             <ul>
               <li v-if="!currentMismatch?.usernameMatch">❌ Username mismatch</li>
               <li v-if="!currentMismatch?.passwordMatch">❌ Password mismatch</li>
@@ -867,102 +957,126 @@ function closeTestModal() {
             </ul>
           </div>
           <div class="alert alert-info">
-            <h6>Recommended actions :</h6>
+            <h5>Recommended actions :</h5>
             <p>Please check and update the site information</p>
           </div>
         </div>
+
+        <!-- Footer -->
         <div class="modal-footer">
           <button class="btn btn-primary" @click="showMismatchModal = false">Close</button>
         </div>
+
       </div>
     </div>
   </div>
 
 
-  <!-- Modal d'édition -->
+  <!-- Modal d'édition (Bootstrap 3.4.1) -->
   <div
     v-if="showModal"
-    class="modal fade show d-block"
+    class="modal fade in"
     tabindex="-1"
-    style="background: rgba(0, 0, 0, 0.3)"
+    style="display: block; background: rgba(0,0,0,0.3);"
   >
     <div class="modal-dialog" style="max-width: 400px;">
-      <div
-        class="modal-content p-3 border-0 rounded-4"
-        style="
-          background: #fff;
-          backdrop-filter: blur(6px);
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-        "
-      >
+      <div class="modal-content" style="box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
+        
         <!-- Header -->
-        <div class="text-center mb-3">
-          <i class="bi bi-pencil-square text-success" style="font-size: 1.2rem;"></i>
-          <h6 class="mt-2 fw-bold text-uppercase mb-0">Update sites</h6>
+        <div class="modal-header text-center">
+          <button type="button" class="close" @click="closeFormModal">&times;</button>
+          <h4 class="modal-title text-uppercase">
+            <i class="bi bi-pencil-square text-success"></i> Update Sites
+          </h4>
         </div>
 
         <!-- Body -->
-        <div class="mb-2">
-          <label class="fw-semibold small">IP (Selected sites)</label>
-          <textarea
-            class="form-control form-control-sm"
-            rows="2"
-            readonly
-          >{{ selectedRows.map(row => row.Ip).join('\n') }}</textarea>
-        </div>
-        <div class="mb-2">
-          <label class="fw-semibold small">siteUsername</label>
-          <input v-model="formValues.username" class="form-control form-control-sm" type="text" />
-        </div>
-        <div class="mb-2">
-          <label class="fw-semibold small">sitePassword</label>
-          <input v-model="formValues.password" class="form-control form-control-sm" type="password" />
-        </div>
-        <div class="mb-2">
-          <label class="fw-semibold small">sitePort</label>
-          <input v-model="formValues.port" class="form-control form-control-sm" type="number" min="0" />
+        <div class="modal-body">
+          <div class="form-group">
+            <label>IP (Selected sites)</label>
+            <textarea
+              class="form-control"
+              rows="2"
+              readonly
+            >{{ selectedRows.map(row => row.Ip).join('\n') }}</textarea>
+          </div>
+          <div class="form-group">
+            <label>siteUsername</label>
+            <input
+              v-model="formValues.username"
+              class="form-control"
+              type="text"
+            />
+          </div>
+          <div class="form-group" style="position: relative;">
+            <label>sitePassword</label>
+            <input
+              v-model="formValues.password"
+              :type="showPassword ? 'text' : 'password'"
+              class="form-control"
+              style="padding-right: 35px;"
+            />
+            <span
+              class="glyphicon"
+              :class="showPassword ? 'glyphicon-eye-close' : 'glyphicon-eye-open'"
+              style="position: absolute; right: 10px; top: 27px; cursor: pointer; color: #777;"
+              @click="showPassword = !showPassword"
+            ></span>
+          </div>
+          <div class="form-group">
+            <label>sitePort</label>
+            <input
+              v-model="formValues.port"
+              class="form-control"
+              type="number"
+              min="0"
+            />
+          </div>
         </div>
 
         <!-- Footer -->
-        <div class="text-center mt-2">
+        <div class="modal-footer text-center">
           <button
-            class="btn btn-success btn-sm px-3 rounded-pill shadow-sm mx-1 my-1"
+            class="btn btn-success"
             @click="runTestFormCredentials()"
             :disabled="!isFormComplete"
           >
             Test
           </button>
           <button
-            class="btn btn-success btn-sm px-3 rounded-pill shadow-sm mx-1 my-1"
+            class="btn btn-success"
             @click="updateSelectedCredentials(formValues)"
           >
             Update
           </button>
           <button
-            class="btn btn-secondary btn-sm px-3 rounded-pill shadow-sm mx-1 my-1"
+            class="btn btn-default"
             @click="closeFormModal"
           >
             Cancel
           </button>
         </div>
+
       </div>
     </div>
   </div>
 
   <!-- Modal Export CSV -->
-  <div v-if="showExportModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.3)">
+  <div v-if="showExportModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Exporter en CSV</h5>
-          <button type="button" class="btn-close" @click="cancelExport"></button>
+          <button type="button" class="close" @click="cancelExport">&times;</button>
+          <h4 class="modal-title">Exporter en CSV</h4>
         </div>
         <div class="modal-body">
-          <label for="csvFileName">Nom du fichier :</label>
-          <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
+          <div class="form-group">
+            <label for="csvFileName">Nom du fichier :</label>
+            <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
+          </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="cancelExport">Annuler</button>
+          <button class="btn btn-default" @click="cancelExport">Annuler</button>
           <button class="btn btn-success" @click="confirmExport">Exporter</button>
         </div>
       </div>
@@ -970,25 +1084,23 @@ function closeTestModal() {
   </div>
 
   <!-- Modal Success -->
-  <div
-    v-if="showSuccessModal"
-    class="modal fade show d-block"
-    tabindex="-1"
-    style="background: rgba(0,0,0,0.3)"
-  >
-    <div class="modal-dialog" style="max-width: 420px;">
+  <div v-if="showSuccessModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
+    <div class="modal-dialog" style="max-width:420px;">
       <div
-        class="modal-content text-center p-4 border-0 rounded-4"
+        class="modal-content text-center"
         style="
-          background: linear-gradient(135deg, #ffffffcc, #f8f9facc);
+          padding: 25px;
+          border:0;
+          border-radius:12px;
+          background: linear-gradient(135deg,#ffffffcc,#f8f9facc);
           backdrop-filter: blur(10px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         "
       >
-        <i class="bi bi-check-circle-fill text-success" style="font-size: 2.5rem;"></i>
-        <h6 class="mt-3 mb-2 fw-bold">Result message</h6>
-        <p class="text-muted mb-3">{{ successMessage }}</p>
-        <button class="btn btn-success btn-sm px-4 rounded-pill shadow-sm" @click="closeSuccessModal">
+        <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+        <h4 style="margin-top:15px; font-weight:bold;">Result message</h4>
+        <p class="text-muted" style="margin-bottom:20px;">{{ successMessage }}</p>
+        <button class="btn btn-success" style="padding:6px 20px; border-radius:25px;" @click="closeSuccessModal">
           OK
         </button>
       </div>
@@ -996,38 +1108,44 @@ function closeTestModal() {
   </div>
 
   <!-- Modal Test -->
-  <div
-  v-if="showTestModal"
-  class="modal fade show d-block"
-  tabindex="-1"
-  style="background: rgba(0,0,0,0.3)"
-  >
-    <div class="modal-dialog" style="max-width: 600px;">
+  <div v-if="showTestModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
+    <div class="modal-dialog" style="max-width:600px;">
       <div
-        class="modal-content p-4 border-0 rounded-4"
+        class="modal-content"
         style="
-          background: linear-gradient(135deg, #ffffffcc, #f8f9facc);
+          padding:25px;
+          border:0;
+          border-radius:12px;
+          background: linear-gradient(135deg,#ffffffcc,#f8f9facc);
           backdrop-filter: blur(10px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         "
       >
-        <div class="text-center mb-3">
-          <i class="bi bi-info-circle-fill text-primary" style="font-size: 2.2rem;"></i>
-          <h5 class="mt-2 fw-bold">Résultats du test</h5>
-          <p class="text-muted mb-0">Voici les résultats pour les credentials testés :</p>
+        <div class="text-center" style="margin-bottom:20px;">
+          <i class="bi bi-info-circle-fill text-primary" style="font-size:2.2rem;"></i>
+          <h4 style="margin-top:10px; font-weight:bold;">Résultats du test</h4>
+          <p class="text-muted">Voici les résultats pour les credentials testés :</p>
         </div>
 
         <div v-if="testResults.length">
-          <ul class="list-group mb-3">
-            <li v-for="(result, index) in testResults" :key="index" class="list-group-item d-flex justify-content-between align-items-start">
+          <ul class="list-group" style="margin-bottom:20px;">
+            <li
+              v-for="(result, index) in testResults"
+              :key="index"
+              class="list-group-item"
+              style="display:flex; justify-content:space-between; align-items:center;"
+            >
               <div>
-                <div class="fw-semibold">Credential {{ index + 1 }}</div>
+                <div style="font-weight:600;">Credential {{ index + 1 }}</div>
                 <div class="text-muted small">{{ result.message || 'Aucun message.' }}</div>
               </div>
-              <span :class="{
-                'badge bg-success': result.success,
-                'badge bg-danger': !result.success
-              }">
+              <span
+                class="badge"
+                :style="{
+                  backgroundColor: result.success ? '#28a745' : '#dc3545',
+                  color: '#fff'
+                }"
+              >
                 {{ result.success ? 'Succès' : 'Échec' }}
               </span>
             </li>
@@ -1038,7 +1156,11 @@ function closeTestModal() {
         </div>
 
         <div class="text-center">
-          <button class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" @click="closeTestModal">
+          <button
+            class="btn btn-primary"
+            style="padding:6px 20px; border-radius:25px;"
+            @click="closeTestModal"
+          >
             Fermer
           </button>
         </div>

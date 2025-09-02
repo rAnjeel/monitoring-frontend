@@ -43,3 +43,25 @@
   font-family: 'IBM Plex Mono', monospace;
   color: var(--text-primary);
 }
+
+/* Spinner animation pour Bootstrap 3 */
+.spinning {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dragover effect */
+.dropzone.dragover {
+  border-color: #337ab7;
+  background-color: #f0f8ff;
+}
