@@ -90,15 +90,23 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
 </script>
 
 <template>
-  <div class="container mt-4">
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
-        <div class="p-3 rounded">
-          <div class="card mt-3">
-            <div class="card-header d-flex align-items-center justify-content-between text-uppercase">
-              <h5 class="mb-0" style="font-family: 'Space Grotesk', sans-serif;">Import CSV</h5>
+  <div class="container" style="margin-top:20px;">
+    <div class="row">
+      <div class="col-lg-6 col-lg-offset-3">
+        <div class="p-3" style="border-radius:8px;">
+          <div class="panel panel-default">
+
+            <!-- Header -->
+            <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+              <h4 class="panel-title" style="margin:0; font-family: 'Space Grotesk', sans-serif;">
+                Import CSV
+              </h4>
             </div>
-            <div class="card-body">
+
+            <!-- Body -->
+            <div class="panel-body">
+
+              <!-- Dropzone -->
               <div
                 class="dropzone"
                 :class="{ dragover: isDragOver }"
@@ -109,30 +117,45 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
                 role="button"
                 tabindex="0"
                 aria-label="Glissez un fichier CSV ou cliquez pour sélectionner"
+                style="border:2px dashed #ccc; border-radius:6px; padding:30px; text-align:center; cursor:pointer;"
               >
                 <div class="dz-inner">
-                  <i class="bi bi-upload" aria-hidden="true"></i>
-                  <div class="dz-title">Glissez-déposez votre fichier CSV ici</div>
-                  <div class="dz-sub">ou cliquez pour parcourir</div>
+                  <i class="glyphicon glyphicon-upload" style="font-size:2rem;"></i>
+                  <div class="dz-title" style="margin-top:10px;">Glissez-déposez votre fichier CSV ici</div>
+                  <div class="dz-sub" style="color:#666;">ou cliquez pour parcourir</div>
                   <input ref="fileInput" type="file" accept=".csv" @change="handleFileChange" hidden />
                 </div>
               </div>
 
-              <div v-if="fileName" class="mt-3">
-                <span class="file-chip"><i class="bi bi-filetype-csv me-2"></i>{{ fileName }}</span>
-                <small class="text-muted ms-2">{{ fileSize }}</small>
+              <!-- File info -->
+              <div v-if="fileName" style="margin-top:15px;">
+                <span class="label label-default">
+                  <i class="glyphicon glyphicon-file"></i> {{ fileName }}
+                </span>
+                <small class="text-muted" style="margin-left:8px;">{{ fileSize }}</small>
               </div>
 
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-m btn-primary" type="button" :disabled="!fileName || isImporting" @click="handleImport">
-                  <span v-if="isImporting" class="spinner-border spinner-border-sm me-2"></span>
+              <!-- Buttons -->
+              <div style="margin-top:15px;">
+                <button class="btn btn-primary btn-sm" type="button" :disabled="!fileName || isImporting" @click="handleImport">
+                  <span v-if="isImporting" class="glyphicon glyphicon-refresh spinning" style="margin-right:5px;"></span>
                   Importer
                 </button>
-                <button class="btn btn-ghost" type="button" @click="handleClear" :disabled="!fileName">Effacer</button>
+                <button class="btn btn-link btn-sm" type="button" @click="handleClear" :disabled="!fileName">
+                  Effacer
+                </button>
               </div>
 
-              <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
-              <div class="mt-2 text-muted small">Format accepté: .csv • Encodage UTF-8 recommandé</div>
+              <!-- Error -->
+              <div v-if="error" class="alert alert-danger" style="margin-top:15px;">
+                {{ error }}
+              </div>
+
+              <!-- Info -->
+              <div style="margin-top:8px; color:#777; font-size:12px;">
+                Format accepté: .csv • Encodage UTF-8 recommandé
+              </div>
+
             </div>
           </div>
         </div>
