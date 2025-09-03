@@ -17,26 +17,39 @@ app.set("views", path.join(__dirname, "views"))
 // Servir le dossier dist (assets statiques)
 app.use(express.static(path.join(__dirname, "dist")))
 
-// Charger manifest.json une seule fois au démarrage
-const manifestPath = path.join(__dirname, "dist", ".vite", "manifest.json")
-const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
-
-// Récupérer entrée principale (adapte selon ton projet)
-const entryKey = Object.keys(manifest).find(k => k.endsWith("main.js"))
-const entry = manifest[entryKey]
+// Fonction pour lire le manifest
+function getManifest() {
+  try {
+    const manifestPath = path.join(__dirname, "dist", ".vite", "manifest.json")
+    return JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
+  } catch (error) {
+    console.error("Erreur lecture manifest:", error)
+    return null
+  }
+}
 
 // Routes SPA
 app.get("/*", (req, res) => {
-  if (!entry) {
+  const manifest = getManifest()
+  
+  if (!manifest) {
     return res.status(500).send("Erreur : manifest.json introuvable ou invalide.")
   }
+  
+  const entryKey = Object.keys(manifest).find(k => k.endsWith("main.js") || k.endsWith("index.js"))
+  
+  if (!entryKey) {
+    return res.status(500).send("Erreur : entrée principale non trouvée dans manifest.")
+  }
+  
+  const entry = manifest[entryKey]
+  
   res.render("index", {
     apiBaseUrl: process.env.VITE_API_BASE_URL,
     jsFile: entry.file,
     cssFile: entry.css ? entry.css[0] : null,
   })
 })
-
 
 // Lancer serveur
 const PORT = process.env.PORT || 8080

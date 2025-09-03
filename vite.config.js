@@ -11,8 +11,8 @@ export default defineConfig({
     vueDevTools(),
   ],
   build: {
-    manifest: true,      // génère manifest.json
-    outDir: "dist",      // par défaut
+    manifest: true,
+    outDir: "dist",
   },
   resolve: {
     alias: {
