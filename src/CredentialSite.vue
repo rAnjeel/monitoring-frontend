@@ -980,7 +980,7 @@ function closeTestModal() {
     style="display: block; background: rgba(0,0,0,0.3);"
   >
     <div class="modal-dialog" style="max-width: 400px;">
-      <div class="modal-content" style="box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
+      <div class="modal-content">
         
         <!-- Header -->
         <div class="modal-header text-center">
@@ -1025,12 +1025,10 @@ function closeTestModal() {
           </div>
           <div class="form-group">
             <label>sitePort</label>
-            <input
-              v-model="formValues.port"
-              class="form-control"
-              type="number"
-              min="0"
-            />
+            <select v-model="formValues.port" class="form-control">
+              <option value="22">22</option>
+              <option value="2023">2023</option>
+            </select>
           </div>
         </div>
 
@@ -1046,6 +1044,7 @@ function closeTestModal() {
           <button
             class="btn btn-success"
             @click="updateSelectedCredentials(formValues)"
+            :disabled="!isFormComplete"
           >
             Update
           </button>

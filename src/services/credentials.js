@@ -220,8 +220,8 @@ export async function testCredentialsForm(selectedRows, formValues) {
 
       const updated = {
         ...existing,
-        ...(username && { siteUsername: username }),
-        ...(password && { sitePassword: password }),
+        ...(username && { siteUsername: username.trim() }),
+        ...(password && { sitePassword: password.trim() }),
         ...(port && { sitePort: Number(port) }),
       }
 

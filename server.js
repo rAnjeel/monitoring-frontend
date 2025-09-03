@@ -1,37 +1,45 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-import dotenv from "dotenv";
-dotenv.config();
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
+import express from "express"
+import dotenv from "dotenv"
+dotenv.config()
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-const app = express();
+const app = express()
 
 // Config EJS
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs")
+app.set("views", path.join(__dirname, "views"))
 
-// Servir les assets du build Vite
-// app.use(express.static(path.join(__dirname, 'public')))
-app.use(express.static(path.join(__dirname, "dist")));
+// Servir le dossier dist (assets statiques)
+app.use(express.static(path.join(__dirname, "dist")))
 
-// Routes spécifiques Vue
-const vueRoutes = ["/", "/failed-logins", "/import-csv"];
-vueRoutes.forEach((route) => {
-  app.get(route, (req, res) => {
-    res.render("index", { apiBaseUrl: process.env.VITE_API_BASE_URL });
-  });
-});
+// Charger manifest.json une seule fois au démarrage
+const manifestPath = path.join(__dirname, "dist", ".vite", "manifest.json")
+const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
 
-// Catch-all pour toutes les autres routes
+// Récupérer entrée principale (adapte selon ton projet)
+const entryKey = Object.keys(manifest).find(k => k.endsWith("main.js"))
+const entry = manifest[entryKey]
+
+// Routes SPA
 app.get("/*", (req, res) => {
-  res.render("index", { apiBaseUrl: process.env.VITE_API_BASE_URL });
-});
+  if (!entry) {
+    return res.status(500).send("Erreur : manifest.json introuvable ou invalide.")
+  }
+  res.render("index", {
+    apiBaseUrl: process.env.VITE_API_BASE_URL,
+    jsFile: entry.file,
+    cssFile: entry.css ? entry.css[0] : null,
+  })
+})
 
-// Port conventionnel pour prod
-const PORT = process.env.PORT || 8080;
+
+// Lancer serveur
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+})
