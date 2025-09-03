@@ -17,33 +17,29 @@ app.set("views", path.join(__dirname, "views"))
 // Servir le dossier dist (assets statiques)
 app.use(express.static(path.join(__dirname, "dist")))
 
-// Fonction pour lire le manifest
-function getManifest() {
-  try {
-    const manifestPath = path.join(__dirname, "dist", ".vite", "manifest.json")
-    return JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
-  } catch (error) {
-    console.error("Erreur lecture manifest:", error)
-    return null
-  }
+// Charger manifest.json une seule fois au démarrage et le mettre en cache
+let manifestCache = null
+
+try {
+  const manifestPath = path.join(__dirname, "dist", ".vite", "manifest.json")
+  manifestCache = JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
+  console.log("✅ Manifest chargé avec succès")
+} catch (error) {
+  console.error("❌ Erreur lecture manifest:", error)
+  process.exit(1) // Arrêter le serveur si le manifest est introuvable
+}
+
+// Récupérer entrée principale une fois pour toutes
+const entryKey = Object.keys(manifestCache).find(k => k.endsWith("index.html"))
+const entry = manifestCache[entryKey]
+
+if (!entry) {
+  console.error("❌ Entrée principale non trouvée dans manifest")
+  process.exit(1)
 }
 
 // Routes SPA
 app.get("/*", (req, res) => {
-  const manifest = getManifest()
-  
-  if (!manifest) {
-    return res.status(500).send("Erreur : manifest.json introuvable ou invalide.")
-  }
-  
-  const entryKey = Object.keys(manifest).find(k => k.endsWith("main.js") || k.endsWith("index.js"))
-  
-  if (!entryKey) {
-    return res.status(500).send("Erreur : entrée principale non trouvée dans manifest.")
-  }
-  
-  const entry = manifest[entryKey]
-  
   res.render("index", {
     apiBaseUrl: process.env.VITE_API_BASE_URL,
     jsFile: entry.file,
