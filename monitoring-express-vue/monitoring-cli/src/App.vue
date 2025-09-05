@@ -1,10 +1,8 @@
 <template>
   <div id="app">
-    <router-view />
-    <CredentialSite />
+    <router-view /> 
   </div>
 </template>
 
 <script setup>
-  import CredentialSite from './CredentialSite.vue'
 </script>

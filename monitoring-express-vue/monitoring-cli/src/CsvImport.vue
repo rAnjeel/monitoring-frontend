@@ -15,7 +15,7 @@ const isImporting = ref(false)
 const isDragOver = ref(false)
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:3000',
 })
 
 function handleFileChange(event) {
