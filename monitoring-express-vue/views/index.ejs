@@ -1,25 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vue CLI via Express</title>
-
-    <!-- CSS générés -->
-    <link rel="stylesheet" href="/dist/css/app.dc75a766.css">
-    <link rel="stylesheet" href="/dist/css/chunk-vendors.b4d31b20.css">
-
-    <!-- Si tu veux Bootstrap -->
-    <link rel="stylesheet" href="/dist/css/bootstrap.css">
-  </head>
-  <body>
-    <div id="app"></div>
-
-    <!-- JS générés -->
-    <script src="/dist/js/chunk-vendors.876e4667.js"></script>
-    <script src="/dist/js/app.d33bd52e.js"></script>
-
-    <!-- Si tu veux Bootstrap -->
-    <script src="/dist/js/bootstrap.js"></script>
-  </body>
-</html>
+<head>
+  <% cssFiles.forEach(file => { %>
+    <link rel="stylesheet" href="/dist/css/<%= file %>">
+  <% }) %>
+</head>
+<body>
+  <div id="app"></div>
+  <% jsFiles.forEach(file => { %>
+    <script src="/dist/js/<%= file %>"></script>
+  <% }) %>
+</body>
