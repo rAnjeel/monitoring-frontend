@@ -13,6 +13,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use('/dist', express.static(path.join(__dirname, 'monitoring-cli/dist')));
 app.use('/jquery', express.static(path.join(__dirname, 'node_modules/jquery/dist')));
+app.use('/bootstrap', express.static(path.join(__dirname, 'monitoring-cli/public/bootstrap')));
+
 
 function getFiles(dir, skipUnminified = false) {
   return fs.readdirSync(dir)
@@ -23,6 +25,8 @@ function getFiles(dir, skipUnminified = false) {
       return f.endsWith('.css') || f.endsWith('.js');
     });
 }
+
+// Servir aussi les fichiers du dossier public (bootstrap, images…)
 
 app.get('/', (req, res) => {
   const cssFiles = getFiles(path.join(__dirname, 'monitoring-cli/dist/css'), true);
