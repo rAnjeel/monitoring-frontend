@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +18,9 @@ app.use('/dist', express.static(path.join(__dirname, 'monitoring-cli/dist')));
 
 // Route principale qui rend le Vue CLI
 app.get('/', (req, res) => {
-  res.render('index');
+  const cssFiles = fs.readdirSync(path.join(__dirname, 'monitoring-cli/dist/css')).filter(f => f.endsWith('.css'));
+  const jsFiles = fs.readdirSync(path.join(__dirname, 'monitoring-cli/dist/js')).filter(f => f.endsWith('.js'));
+  res.render('index', { cssFiles, jsFiles });
 });
 
 app.listen(PORT, () => {
