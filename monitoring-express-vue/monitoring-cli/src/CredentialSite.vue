@@ -65,24 +65,24 @@ const formValues = ref({
 })
 
 const columnDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true , headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'}},
+  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true , headerStyle: { 'backgroundColor': '#3F3F3F', 'color': 'white', 'font-weight': 'bold'}},
 
-  { field: 'Ip', headerName: 'IP', flex: 5, headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'} },
+  { field: 'Ip', headerName: 'IP', flex: 5, headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'} },
 
   { 
     field: 'CodeSite', 
     headerName: 'Site',
-    headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'}, 
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'}, 
     flex: 3, 
     cellRenderer: (p) => `<span class="label label-primary">${p.value ?? ''}</span>` 
   },
 
-  { field: 'siteUsername', headerName: 'Site Username', flex: 4, headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'}},
+  { field: 'siteUsername', headerName: 'Site Username', flex: 4, headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'}},
 
   { 
     field: 'sitePort', 
     headerName: 'Port', 
-    headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'},
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 3, 
     cellRenderer: (p) => `<span class="label label-info">${p.value ?? ''}</span>` 
   },
@@ -90,7 +90,7 @@ const columnDefs = ref([
   { 
     field: 'siteSShVersion', 
     headerName: 'SSH', 
-    headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'},
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 3, 
     cellRenderer: (p) => `<span class="label label-success">${p.value ?? ''}</span>` 
   },
@@ -98,7 +98,7 @@ const columnDefs = ref([
   {
     field: 'lastDateChange',
     headerName: 'Last Date Change',
-    headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'},
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     suppressCsvExport: true,
     flex: 6,
     valueFormatter: (params) => {
@@ -110,7 +110,7 @@ const columnDefs = ref([
   {
     field: 'lastConnectionError',
     headerName: 'Last Connection Failed',
-    headerStyle: { 'backgroundColor': '#333333', 'color': 'white', 'font-weight': 'bold'},
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 6,
     suppressCsvExport: true,
     valueFormatter: (params) => {
