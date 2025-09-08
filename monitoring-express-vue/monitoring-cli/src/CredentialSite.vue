@@ -121,14 +121,14 @@ const columnDefs = ref([
 ])
 
 const columnMismatchDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2 },
-  { field: 'Ip', headerName: 'IP', flex: 5 },
-  { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
-  { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true },
-
+  { field: 'id', headerName: 'ID', flex: 2, headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'}},
+  { field: 'Ip', headerName: 'IP', flex: 5, headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'}},
+  { field: 'sitePort', headerName: 'Port', flex: 5, editable: true , headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'}},
+  { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true, headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'}},
   { 
     field: 'usernameMatch', 
     headerName: 'Username Match', 
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -140,6 +140,7 @@ const columnMismatchDefs = ref([
   { 
     field: 'passwordMatch', 
     headerName: 'Password Match', 
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -151,6 +152,7 @@ const columnMismatchDefs = ref([
   { 
     field: 'portMatch', 
     headerName: 'Port Match',
+    headerStyle: { 'backgroundColor': '##3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
