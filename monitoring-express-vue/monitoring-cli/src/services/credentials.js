@@ -205,7 +205,7 @@ export async function testCredentialsForm(selectedRows, formValues) {
       throw new Error('Aucune donnée du formulaire à tester')
     }
 
-    const { username, password, port } = formValues
+    const { username, password, port, siteSShVersion } = formValues
     if (!username && !password && !port) {
       throw new Error('Aucune donnée du formulaire à tester')
     }
@@ -223,6 +223,7 @@ export async function testCredentialsForm(selectedRows, formValues) {
         ...(username && { siteUsername: username }),
         ...(password && { sitePassword: password }),
         ...(port && { sitePort: Number(port) }),
+        ...(siteSShVersion && { siteSShVersion: siteSShVersion }),
       }
 
       credentialsData.push(updated)

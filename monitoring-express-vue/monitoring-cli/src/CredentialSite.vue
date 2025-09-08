@@ -6,9 +6,8 @@ import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
-    
+import './assets/main.css';
 import './assets/credential.css'
-import './assets/main.css'
 import _ from 'lodash'
 import MainGrid from './components/grids/MainGrid.vue'
 import MismatchGrid from './components/grids/MismatchGrid.vue'
@@ -64,22 +63,24 @@ const formValues = ref({
 })
 
 const columnDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true },
+  { field: 'id', headerName: 'ID', flex: 2, suppressCsvExport: true , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
 
-  { field: 'Ip', headerName: 'IP', flex: 5 },
+  { field: 'Ip', headerName: 'IP', flex: 5, headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'} },
 
   { 
     field: 'CodeSite', 
-    headerName: 'Site', 
+    headerName: 'Site',
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}, 
     flex: 3, 
     cellRenderer: (p) => `<span class="label label-primary">${p.value ?? ''}</span>` 
   },
 
-  { field: 'siteUsername', headerName: 'Site Username', flex: 4 },
+  { field: 'siteUsername', headerName: 'Site Username', flex: 4, headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
 
   { 
     field: 'sitePort', 
     headerName: 'Port', 
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 3, 
     cellRenderer: (p) => `<span class="label label-info">${p.value ?? ''}</span>` 
   },
@@ -87,6 +88,7 @@ const columnDefs = ref([
   { 
     field: 'siteSShVersion', 
     headerName: 'SSH', 
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 3, 
     cellRenderer: (p) => `<span class="label label-success">${p.value ?? ''}</span>` 
   },
@@ -94,6 +96,7 @@ const columnDefs = ref([
   {
     field: 'lastDateChange',
     headerName: 'Last Date Change',
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     suppressCsvExport: true,
     flex: 6,
     valueFormatter: (params) => {
@@ -105,6 +108,7 @@ const columnDefs = ref([
   {
     field: 'lastConnectionError',
     headerName: 'Last Connection Failed',
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 6,
     suppressCsvExport: true,
     valueFormatter: (params) => {
@@ -115,14 +119,15 @@ const columnDefs = ref([
 ])
 
 const columnMismatchDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2 },
-  { field: 'Ip', headerName: 'IP', flex: 5 },
-  { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
-  { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true },
+  { field: 'id', headerName: 'ID', flex: 2 , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
+  { field: 'Ip', headerName: 'IP', flex: 5 , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'} },
+  { field: 'sitePort', headerName: 'Port', flex: 5, editable: true , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
+  { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
 
   { 
     field: 'usernameMatch', 
     headerName: 'Username Match', 
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -134,6 +139,7 @@ const columnMismatchDefs = ref([
   { 
     field: 'passwordMatch', 
     headerName: 'Password Match', 
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -144,7 +150,8 @@ const columnMismatchDefs = ref([
 
   { 
     field: 'portMatch', 
-    headerName: 'Port Match', 
+    headerName: 'Port Match',
+    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}, 
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -631,19 +638,20 @@ function closeTestModal() {
 
 <template>
   <!-- Header -->
-  <div class="dashboard-header">
-    <div class="d-flex align-items-center justify-content-between pt-5">
-      <div>
-        <div class="breadcrumbs">
-          <span class="crumb">Monitoring</span>
-          <span class="sep">/</span>
-          <span class="crumb">Overview</span>
-        </div>
-        <h3 class="mt-2 mb-0 text-gradient">Sites credentials</h3>
+  <div class="container-fluid px-4 py-3">
+    <div class="d-flex align-items-center justify-content-between p-4 rounded shadow-sm bg-white">
+      <div class="me-4">
+        <nav aria-label="breadcrumb" class="mb-2">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">Monitoring</li>
+            <li class="breadcrumb-item active" aria-current="page">Overview</li>
+          </ol>
+        </nav>
+        <h3 class="mt-2 mb-0 fw-bold">Sites credentials</h3>
         <small class="text-muted">Last update: {{ lastUpdated ? new Date(lastUpdated).toLocaleString() : '—' }}</small>
       </div>
-      <div class="header-actions">
-        <button class="btn btn-primary" @click="syncSites" :disabled="loading">
+      <div class="ms-4">
+        <button class="btn btn-primary d-flex align-items-center" @click="syncSites" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           <i v-else class="bi bi-arrow-repeat me-2"></i>
           Synchronize all sites
@@ -651,6 +659,8 @@ function closeTestModal() {
       </div>
     </div>
   </div>
+
+
 
   <div v-if="loading" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3); z-index:2000;">
     <div class="modal-dialog" style="margin-top:20%;">
@@ -689,25 +699,25 @@ function closeTestModal() {
         <div class="panel-body">
           <!-- KPIs -->
           <div class="kpi-grid" style="display:flex; gap:15px; margin-bottom:20px;">
-            <div class="kpi-card safe" style="flex:1; padding:10px; border-radius:8px; background:#f8f9fa; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+            <div class="kpi-card safe" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
               <div>
-                <div class="label">Total Sites Synced</div>
+                <div class="label text-large">Total Sites Synced</div>
                 <div class="value">{{ totalSites }}</div>
               </div>
               <i class="bi bi-hdd-network text-primary" style="font-size:1.5rem;"></i>
             </div>
 
-            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#e6f7f9; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#3498DB; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
               <div>
-                <div class="label">Matches</div>
+                <div class="label text-large">Matches</div>
                 <div class="value">{{ matchedCount }}</div>
               </div>
               <i class="bi bi-shield-check text-primary" style="font-size:1.5rem;"></i>
             </div>
 
-            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#fff3cd; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#FFD700; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
               <div>
-                <div class="label">Mismatches</div>
+                <div class="label text-large">Mismatches</div>
                 <div class="value">{{ mismatchCount }}</div>
               </div>
               <i class="bi bi-shield-exclamation text-warning" style="font-size:1.5rem;"></i>
@@ -751,64 +761,59 @@ function closeTestModal() {
     </div>
   </div>
 
-  <!-- Menu contextuel custom -->
-  <ul id="customMenu" class="mb-2 small"
-      style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
-    
-    <li class="mb-1">
-      <button class="btn btn-xs btn-link text-muted pull-right" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuCloseClick">
-        <span class="glyphicon glyphicon-remove"></span>
-      </button>
-    </li>
+<!-- Menu contextuel custom -->
+<ul id="customMenu" class="custom-context-menu">
+  <li class="menu-header">
+    <button type="button" class="close-btn" @click="onCustomMenuCloseClick">
+      <span class="glyphicon glyphicon-remove"></span>
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-delete-mismatch"
+            @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
+      <span class="glyphicon glyphicon-pencil"></span> Update site
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-sync-mismatch"
+            @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+      <span class="glyphicon glyphicon-flash"></span> Test connexion
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-sync-mismatch"
+            @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+      <span class="glyphicon glyphicon-flash"></span> Discover
+    </button>
+  </li>
+</ul>
 
-    <li id="menu-delete" style="padding:2px;">
-      <button class="btn btn-xs btn-default btn-block text-left" 
-              type="button" id="btn-delete-mismatch" @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
-        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
-      </button>
-    </li>
-
-    <li id="menu-sync" style="padding:2px;">
-      <button class="btn btn-xs btn-default btn-block text-left" 
-              type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-        <span class="glyphicon glyphicon-flash" style="margin-right:5px;"></span> Test connexion
-      </button>
-    </li>
-  </ul>
-
-  <!-- Custom menu mismatch -->
-  <ul id="customMenuMismatch" class="mb-2 small"
-      style="position:fixed; display:none; background:white; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.15); list-style:none; padding:5px; margin:0; z-index:1000; min-width:160px;">
-    
-    <li class="mb-1">
-      <button class="btn btn-xs btn-link text-muted pull-right" type="button" id="btn-close-menu-mismatch" @click="onCustomMenuMismatchCloseClick">
-        <span class="glyphicon glyphicon-remove"></span>
-      </button>
-    </li>
-
-    <li id="menu-details-mismatch" style="padding:2px;">
-      <button class="btn btn-xs btn-default btn-block text-left"
-              type="button" id="btn-details-mismatch" @click="onCustomMenuMismatchDetailsClick">
-        <span class="glyphicon glyphicon-info-sign" style="margin-right:5px;"></span> Show details
-      </button>
-    </li>
-
-    <li id="menu-delete-mismatch" style="padding:2px;">
-      <button class="btn btn-xs btn-default btn-block text-left"
-              type="button" id="btn-delete-mismatch" @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
-        <span class="glyphicon glyphicon-pencil" style="margin-right:5px;"></span> Update site
-      </button>
-    </li>
-
-    <li id="menu-sync-mismatch" style="padding:2px;">
-      <button class="btn btn-xs btn-default btn-block text-left"
-              type="button" id="btn-sync-mismatch" @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-        <span class="glyphicon glyphicon-flash" style="margin-right:5px;"></span> Test connexion
-      </button>
-    </li>
-  </ul>
-
-
+<!-- Custom menu mismatch -->
+<ul id="customMenuMismatch" class="custom-context-menu">
+  <li class="menu-header">
+    <button type="button" class="close-btn" @click="onCustomMenuMismatchCloseClick">
+      <span class="glyphicon glyphicon-remove"></span>
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-details-mismatch"
+            @click="onCustomMenuMismatchDetailsClick">
+      <span class="glyphicon glyphicon-info-sign"></span> Show details
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-delete-mismatch"
+            @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
+      <span class="glyphicon glyphicon-pencil"></span> Update site
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-sync-mismatch"
+            @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+      <span class="glyphicon glyphicon-flash"></span> Test connexion
+    </button>
+  </li>
+</ul>
 
   <div class="p-4 rounded">
     <div class="panel panel-default p-4 shadow-sm">
@@ -819,23 +824,23 @@ function closeTestModal() {
         </h5>
         <div class="btn-group" style="display: flex;">
           <!-- Export -->
-          <button class="btn btn-default" @click="handleExport" style="margin-right:6px; border-radius: 50px;">
+          <button class="btn btn-primary" @click="handleExport" style="margin-right:6px; background-color: #3498DB;">
             <span class="glyphicon glyphicon-download-alt"></span> Export
           </button>
 
-          <button class="btn btn-default" @click="$router.push('/import-csv')" style="margin-right:6px; border-radius: 50px;">
+          <button class="btn btn-primary" @click="$router.push('/import-csv')" style="margin-right:6px; background-color: #3498DB;">
             <span class="glyphicon glyphicon-upload"></span> Import CSV
           </button>
 
 
           <!-- Select/Unselect All -->
-          <button class="btn btn-default" @click="toggleSelectAll" style="margin-right:6px; border-radius: 50px;">
+          <button class="btn btn-primary" @click="toggleSelectAll" style="margin-right:6px; background-color: #3498DB;">
             <span class="glyphicon glyphicon-check"></span>
             {{ allSelected ? 'Unselect All' : 'Select All' }}
           </button>
 
           <!-- Reload -->
-          <button class="btn btn-link" @click="loadCredentials" :disabled="loading" style="border-radius: 50px;">
+          <button class="btn btn-link" @click="loadCredentials" :disabled="loading">
             <span v-if="loading" class="glyphicon glyphicon-refresh spinning"></span>
             <span v-else class="glyphicon glyphicon-repeat"></span>
             Reload
@@ -998,7 +1003,7 @@ function closeTestModal() {
             <span
               class="glyphicon"
               :class="showPassword ? 'glyphicon-eye-close' : 'glyphicon-eye-open'"
-              style="position: absolute; right: 10px; top: 27px; cursor: pointer; color: #777;"
+              style="position: absolute; right: 10px; top: 37px; cursor: pointer; color: #777;"
               @click="showPassword = !showPassword"
             ></span>
           </div>
@@ -1016,15 +1021,17 @@ function closeTestModal() {
         <!-- Footer -->
         <div class="modal-footer text-center">
           <button
-            class="btn btn-success"
+            class="btn"
             @click="runTestFormCredentials()"
             :disabled="!isFormComplete"
+            style="background-color: #3498DB;"
           >
             Test
           </button>
           <button
-            class="btn btn-success"
+            class="btn"
             @click="updateSelectedCredentials(formValues)"
+            style="background-color: #3498DB;"
           >
             Update
           </button>
