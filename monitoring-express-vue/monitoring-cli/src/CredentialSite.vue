@@ -762,34 +762,45 @@ function closeDiscoverModal() {
         </div>
 
         <div class="panel-body">
-          <!-- KPIs -->
-          <div class="kpi-grid" style="display:flex; gap:15px; margin-bottom:20px;">
-            <div class="kpi-card safe" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
-              <div>
-                <div class="fs-6 fw-semibold">Total Sites Synced</div>
-                <div class="fs-4 fw-bold">{{ totalSites }}</div>
+          <div class="row">
+            <div class="col-xs-12 col-sm-4">
+              <div class="kpi-card" style="padding: 10px; border-radius: 8px; background-color: #333333; color: white; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <div style="font-size: 1em; font-weight: bold;">Total Sites Synced</div>
+                    <div style="font-size: 1.5em; font-weight: bold;">{{ totalSites }}</div>
+                  </div>
+                  <span class="glyphicon glyphicon-hdd" style="font-size: 1.5em; color: #3498DB;"></span>
+                </div>
               </div>
-              <i class="bi bi-hdd-network text-primary" style="font-size:1.5rem;"></i>
             </div>
 
-            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
-              <div>
-                <div class="fs-6 fw-semibold">Matches</div>
-                <div class="fs-4 fw-bold">{{ matchedCount }}</div>
+            <div class="col-xs-12 col-sm-4">
+              <div class="kpi-card" style="padding: 10px; border-radius: 8px; background-color: #333333; color: white; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <div style="font-size: 1em; font-weight: bold;">Matches</div>
+                    <div style="font-size: 1.5em; font-weight: bold;">{{ matchedCount }}</div>
+                  </div>
+                  <span class="glyphicon glyphicon-ok-circle" style="font-size: 1.5em; color: #2ecc71;"></span>
+                </div>
               </div>
-              <i class="bi bi-shield-check text-primary" style="font-size:1.5rem;"></i>
             </div>
 
-            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
-              <div>
-                <div class="fs-6 fw-semibold">Mismatches</div>
-                <div class="fs-4 fw-bold">{{ mismatchCount }}</div>
+            <div class="col-xs-12 col-sm-4">
+              <div class="kpi-card" style="padding: 10px; border-radius: 8px; background-color: #333333; color: white; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <div style="font-size: 1em; font-weight: bold;">Mismatches</div>
+                    <div style="font-size: 1.5em; font-weight: bold;">{{ mismatchCount }}</div>
+                  </div>
+                  <span class="glyphicon glyphicon-remove-circle" style="font-size: 1.5em; color: #e74c3c;"></span>
+                </div>
               </div>
-              <i class="bi bi-shield-exclamation text-warning" style="font-size:1.5rem;"></i>
             </div>
           </div>
-        </div>
-
+        </div>        
+        
         <!-- Sites Issues -->
         <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
           <h4 class="panel-title" style="margin:0;">Sites Issues ({{ syncResult.mismatches.length }})</h4>
