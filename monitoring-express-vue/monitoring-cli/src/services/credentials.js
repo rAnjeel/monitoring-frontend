@@ -124,7 +124,7 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
       throw new Error('Aucune donnée du formulaire à mettre à jour');
     }
 
-    const { username, password, port } = formValues;
+    const { username, password, port, siteSShVersion } = formValues;
 
     if (!username && !password && !port) {
       throw new Error('Aucune donnée du formulaire à mettre à jour');
@@ -141,6 +141,8 @@ export async function bulkUpdateFormCredentials(updatedRows, formValues) {
         ...(username && { siteUsername: username }),
         ...(password && { sitePassword: password }),
         ...(port && { sitePort: Number(port) }),
+        ...(siteSShVersion && { siteSShVersion: siteSShVersion }),
+
         lastDateChange: new Date().toISOString()
       };
 
@@ -275,5 +277,37 @@ export async function getHistoricCredentials() {
     throw new Error('Échec de la récupération. Vérifiez les logs serveur.');
   }
 }
+
+export async function discover(selectedRows) {
+  try {
+    if (!selectedRows || !selectedRows.length) {
+      return { success: false, error: 'Aucune ligne sélectionnée' }
+    }
+
+    const credentialsData = []
+
+    // Get tous les credentials
+    for (const row of selectedRows) {
+      const id = row.id
+      if (!id) continue
+
+      const { data: existing } = await api.get(`/credentials/${id}`)
+      credentialsData.push(existing)
+    }
+
+    console.log('[discover] Début du scan avec la liste :', credentialsData)
+    const response = await api.post('/credentials/discover/list', credentialsData)
+
+    console.log('[discover] Réponse serveur :', response.data)
+    return response.data
+  } catch (error) {
+    console.error('[discover] Erreur:', error)
+    return {
+      success: false,
+      error: error.message || 'Échec du discover des credentials',
+    }
+  }
+}
+
 
 

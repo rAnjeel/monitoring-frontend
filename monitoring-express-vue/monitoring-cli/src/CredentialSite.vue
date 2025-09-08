@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm } from './services/credentials'
+import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm, discover } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css';
@@ -55,7 +55,9 @@ const successMessage = ref('')
 const showTestModal = ref(false)
 const testResults = ref([])
 const allSelected = ref(false)
-const showPassword = ref(false);
+const showPassword = ref(false)
+const showDiscoverModal = ref(false)
+const discoverResults = ref(null)
 const formValues = ref({
   username: '',
   password: '',
@@ -119,15 +121,14 @@ const columnDefs = ref([
 ])
 
 const columnMismatchDefs = ref([
-  { field: 'id', headerName: 'ID', flex: 2 , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
-  { field: 'Ip', headerName: 'IP', flex: 5 , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'} },
-  { field: 'sitePort', headerName: 'Port', flex: 5, editable: true , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
-  { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true , headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}},
+  { field: 'id', headerName: 'ID', flex: 2 },
+  { field: 'Ip', headerName: 'IP', flex: 5 },
+  { field: 'sitePort', headerName: 'Port', flex: 5, editable: true },
+  { field: 'siteUsername', headerName: 'Username', flex: 5, editable: true },
 
   { 
     field: 'usernameMatch', 
     headerName: 'Username Match', 
-    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -139,7 +140,6 @@ const columnMismatchDefs = ref([
   { 
     field: 'passwordMatch', 
     headerName: 'Password Match', 
-    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -151,7 +151,6 @@ const columnMismatchDefs = ref([
   { 
     field: 'portMatch', 
     headerName: 'Port Match',
-    headerStyle: { 'backgroundColor': "#FFD700", 'font-weight': 'bold'}, 
     flex: 4, 
     cellRenderer: (params) => {
       return params.value
@@ -487,6 +486,65 @@ async function runTestFormCredentials() {
   }
 }
 
+async function runDiscoverList() {
+  onCustomMenuCloseClick()
+  if (!selectedRows.value.length) {
+    console.warn('[runDiscoverList] Aucune ligne sélectionnée')
+    return
+  }
+
+  loading.value = true
+  try {
+    console.log('[runDiscoverList] Lignes sélectionnées :', selectedRows.value)
+
+    // Appel de l’API discover
+    syncResult.value = await discover(selectedRows.value)
+
+    if (!syncResult.value || syncResult.value.length === 0) {
+      noMismatchMessage.value = 'Aucun résultat discover disponible.'
+      return
+    }
+
+    console.log('[runDiscoverList] Résultats du discover :', syncResult.value)
+    showDiscoverSummary()
+
+    await loadCredentials()
+  } catch (err) {
+    error.value = err.message
+    console.error('[runDiscoverList] Erreur lors du discover de la liste :', err)
+  } finally {
+    loading.value = false
+    lastUpdated.value = new Date()
+  }
+}
+
+function updateDiscover(item) {
+  if (!item) return
+
+  const rowsToUpdate = [item]
+  const formValues = {
+    username: item.siteUsername,
+    password: item.sitePassword,
+    port: item.sitePort,
+    siteSShVersion: item.siteSShVersion
+  }
+
+  bulkUpdateFormCredentials(rowsToUpdate, formValues)
+    .then(res => {
+      if (res.success) {
+        console.log(`Discovery updated: ${item.Ip}:${item.sitePort}`)
+        openSuccessModal(`Discovery updated: ${item.Ip}:${item.sitePort}`)
+        loadCredentials()
+      } else {
+        console.error('Update failed:', res.error)
+        openSuccessModal(`Update failed: ${res.error}`)
+      }
+    })
+    .catch(err => {
+      console.error('Error during discovery update:', err)
+      openSuccessModal(`Error during discovery update: ${err.message}`)
+    })
+}
 
 
 function handleExport() {
@@ -628,10 +686,17 @@ function showTestSummary() {
   showTestModal.value = true
 }
 
-
-
 function closeTestModal() {
   showTestModal.value = false
+}
+
+function showDiscoverSummary() {
+  discoverResults.value = syncResult.value
+  showDiscoverModal.value = true
+}
+
+function closeDiscoverModal() {
+  showDiscoverModal.value = false
 }
 
 </script>
@@ -701,29 +766,28 @@ function closeTestModal() {
           <div class="kpi-grid" style="display:flex; gap:15px; margin-bottom:20px;">
             <div class="kpi-card safe" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
               <div>
-                <div class="label text-large">Total Sites Synced</div>
-                <div class="value">{{ totalSites }}</div>
+                <div class="fs-6 fw-semibold">Total Sites Synced</div>
+                <div class="fs-4 fw-bold">{{ totalSites }}</div>
               </div>
               <i class="bi bi-hdd-network text-primary" style="font-size:1.5rem;"></i>
             </div>
 
-            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#3498DB; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+            <div class="kpi-card teal" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
               <div>
-                <div class="label text-large">Matches</div>
-                <div class="value">{{ matchedCount }}</div>
+                <div class="fs-6 fw-semibold">Matches</div>
+                <div class="fs-4 fw-bold">{{ matchedCount }}</div>
               </div>
               <i class="bi bi-shield-check text-primary" style="font-size:1.5rem;"></i>
             </div>
 
-            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#FFD700; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
+            <div class="kpi-card warn" style="flex:1; padding:10px; border-radius:8px; background:#333333; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 4px rgba(0,0,0,0.1); transform:translateY(6px);">
               <div>
-                <div class="label text-large">Mismatches</div>
-                <div class="value">{{ mismatchCount }}</div>
+                <div class="fs-6 fw-semibold">Mismatches</div>
+                <div class="fs-4 fw-bold">{{ mismatchCount }}</div>
               </div>
               <i class="bi bi-shield-exclamation text-warning" style="font-size:1.5rem;"></i>
             </div>
           </div>
-
         </div>
 
         <!-- Sites Issues -->
@@ -782,8 +846,8 @@ function closeTestModal() {
   </li>
   <li>
     <button class="menu-item" type="button" id="btn-sync-mismatch"
-            @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-      <span class="glyphicon glyphicon-flash"></span> Discover
+            @click="runDiscoverList" :disabled="!selectedRows.length || loading">
+      <span class="glyphicon glyphicon-search"></span> Discover
     </button>
   </li>
 </ul>
@@ -811,6 +875,12 @@ function closeTestModal() {
     <button class="menu-item" type="button" id="btn-sync-mismatch"
             @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
       <span class="glyphicon glyphicon-flash"></span> Test connexion
+    </button>
+  </li>
+  <li>
+    <button class="menu-item" type="button" id="btn-sync-mismatch"
+            @click="runDiscoverList" :disabled="!selectedRows.length || loading">
+      <span class="glyphicon glyphicon-search"></span> Discover
     </button>
   </li>
 </ul>
@@ -982,18 +1052,25 @@ function closeTestModal() {
         <div class="modal-body">
           <div class="form-group">
             <label>IP (Selected sites)</label>
-            <textarea class="form-control" rows="2" readonly :value="selectedRows.map(row => row.Ip).join('\n')"></textarea>
+            <textarea
+              class="form-control"
+              rows="2"
+              readonly
+              :value="selectedRows.map(row => row.Ip).join('\n')"
+            ></textarea>
           </div>
+
           <div class="form-group">
-            <label>siteUsername</label>
+            <label>Site Username</label>
             <input
               v-model="formValues.username"
               class="form-control"
               type="text"
             />
           </div>
+
           <div class="form-group" style="position: relative;">
-            <label>sitePassword</label>
+            <label>Site Password</label>
             <input
               v-model="formValues.password"
               :type="showPassword ? 'text' : 'password'"
@@ -1007,16 +1084,24 @@ function closeTestModal() {
               @click="showPassword = !showPassword"
             ></span>
           </div>
+
           <div class="form-group">
-            <label>sitePort</label>
-            <input
-              v-model="formValues.port"
-              class="form-control"
-              type="number"
-              min="0"
-            />
+            <label>Port</label>
+            <select v-model="formValues.port" class="form-control">
+              <option value="22">22</option>
+              <option value="2023">2023</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Shell Types</label>
+            <select v-model="formValues.sshVersion" class="form-control">
+              <option value="usual-shell">usual-shell</option>
+              <option value="ose-shell">ose-shell</option>
+            </select>
           </div>
         </div>
+
 
         <!-- Footer -->
         <div class="modal-footer text-center">
@@ -1109,8 +1194,8 @@ function closeTestModal() {
       >
         <div class="text-center" style="margin-bottom:20px;">
           <i class="bi bi-info-circle-fill text-primary" style="font-size:2.2rem;"></i>
-          <h4 style="margin-top:10px; font-weight:bold;">Résultats du test</h4>
-          <p class="text-muted">Voici les résultats pour les credentials testés :</p>
+          <h4 style="margin-top:10px; font-weight:bold;">Test results</h4>
+          <p class="text-muted">Results of all tested credentials :</p>
         </div>
 
         <div v-if="testResults.length">
@@ -1138,7 +1223,7 @@ function closeTestModal() {
           </ul>
         </div>
         <div v-else class="text-center text-muted">
-          Aucun résultat à afficher.
+          Empty result to show.
         </div>
 
         <div class="text-center">
@@ -1147,7 +1232,108 @@ function closeTestModal() {
             style="padding:6px 20px; border-radius:25px;"
             @click="closeTestModal"
           >
-            Fermer
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discover Modal -->
+  <div
+    v-if="showDiscoverModal"
+    class="modal fade in"
+    tabindex="-1"
+    style="display:block; background: rgba(0,0,0,0.3);"
+  >
+    <div class="modal-dialog" style="max-width:700px;">
+      <div
+        class="modal-content"
+        style="
+          padding:25px;
+          border:0;
+          border-radius:12px;
+          background: linear-gradient(135deg,#ffffffcc,#f8f9facc);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        "
+      >
+        <!-- Header -->
+        <div class="text-center" style="margin-bottom:20px;">
+          <i class="bi bi-search text-primary" style="font-size:2.2rem;"></i>
+          <h4 style="margin-top:10px; font-weight:bold;">Discover Results</h4>
+          <p class="text-muted">Results from the scan on selected sites:</p>
+        </div>
+
+        <!-- Discoveries -->
+        <div v-if="discoverResults?.discoveries?.length">
+          <h5 style="font-weight:600;">Discoveries:</h5>
+          <ul class="list-group" style="margin-bottom:20px;">
+            <li
+              v-for="(item, index) in discoverResults.discoveries"
+              :key="'d-'+index"
+              class="list-group-item"
+              style="display:flex; justify-content:space-between; align-items:center;"
+            >
+              <div>
+                <div style="font-weight:600;">{{ item.Ip }} : {{ item.sitePort }}</div>
+                <div class="text-muted small">
+                  Username: {{ item.siteUsername }}
+                </div>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <span class="badge bg-success">Success</span>
+                <button
+                  v-if="item.sitePort" 
+                  class="btn btn-sm btn-outline-primary"
+                  @click="updateDiscover(item)"
+                >
+                  Update
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Errors -->
+        <div v-if="discoverResults?.errors?.length">
+          <h5 style="font-weight:600;">Errors:</h5>
+          <ul class="list-group" style="margin-bottom:20px;">
+            <li
+              v-for="(err, index) in discoverResults.errors"
+              :key="'e-'+index"
+              class="list-group-item"
+              style="display:flex; justify-content:space-between; align-items:center;"
+            >
+              <div>
+                <div style="font-weight:600;">{{ err.Ip }} : {{ err.sitePort }}</div>
+                <div class="text-muted small">{{ err.errorDescription }}</div>
+              </div>
+              <span class="badge bg-danger">Failed</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Stats -->
+        <div v-if="discoverResults?.stats" class="text-center text-muted small" style="margin-bottom:15px;">
+          Total: {{ discoverResults.stats.total }} |
+          Success: {{ discoverResults.stats.success }} |
+          Failed: {{ discoverResults.stats.failed }}
+        </div>
+
+        <!-- Empty -->
+        <div v-if="!discoverResults?.discoveries?.length && !discoverResults?.errors?.length" class="text-center text-muted">
+          No results to display.
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center">
+          <button
+            class="btn btn-primary"
+            style="padding:6px 20px; border-radius:25px;"
+            @click="closeDiscoverModal"
+          >
+            Close
           </button>
         </div>
       </div>
