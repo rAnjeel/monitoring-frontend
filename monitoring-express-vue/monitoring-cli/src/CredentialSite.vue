@@ -1152,17 +1152,17 @@ function closeDiscoverModal() {
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" @click="cancelExport">&times;</button>
-          <h4 class="modal-title">Exporter en CSV</h4>
+          <h4 class="modal-title">Export CSV</h4>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label for="csvFileName">Nom du fichier :</label>
+            <label for="csvFileName">File name :</label>
             <input id="csvFileName" v-model="exportFileName" class="form-control" placeholder="export.csv" />
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-default" @click="cancelExport">Annuler</button>
-          <button class="btn btn-success" @click="confirmExport">Exporter</button>
+          <button class="btn btn-default" @click="cancelExport">Cancel</button>
+          <button class="btn btn-success" @click="confirmExport">Export</button>
         </div>
       </div>
     </div>
