@@ -1290,9 +1290,12 @@ function closeDiscoverModal() {
               style="display:flex; justify-content:space-between; align-items:center;"
             >
               <div>
-                <div style="font-weight:600;">{{ item.Ip }} : {{ item.sitePort }}</div>
                 <div class="text-muted small">
-                  Username: {{ item.siteUsername }}
+                  SITE : {{ item.id }}
+                </div>
+                <div style="font-weight:600;">{{ item.siteUsername }} : {{ item.Ip }} </div>
+                <div class="text-muted small">
+                  Password: {{ item.password }} | Port: {{ item.sitePort }} | Shell: {{ item.siteSShVersion }}
                 </div>
               </div>
               <div style="display:flex; gap:10px; align-items:center;">
