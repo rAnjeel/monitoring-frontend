@@ -800,7 +800,7 @@ function closeDiscoverModal() {
             </div>
           </div>
         </div>        
-        
+
         <!-- Sites Issues -->
         <div class="panel-heading" style="display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
           <h4 class="panel-title" style="margin:0;">Sites Issues ({{ syncResult.mismatches.length }})</h4>
@@ -836,65 +836,65 @@ function closeDiscoverModal() {
     </div>
   </div>
 
-<!-- Menu contextuel custom -->
-<ul id="customMenu" class="custom-context-menu">
-  <li class="menu-header">
-    <button type="button" class="close-btn" @click="onCustomMenuCloseClick">
-      <span class="glyphicon glyphicon-remove"></span>
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-delete-mismatch"
-            @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
-      <span class="glyphicon glyphicon-pencil"></span> Update site
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-sync-mismatch"
-            @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-      <span class="glyphicon glyphicon-flash"></span> Test connexion
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-sync-mismatch"
-            @click="runDiscoverList" :disabled="!selectedRows.length || loading">
-      <span class="glyphicon glyphicon-search"></span> Discover
-    </button>
-  </li>
-</ul>
+  <!-- Menu contextuel custom -->
+  <ul id="customMenu" class="custom-context-menu">
+    <li class="menu-header">
+      <button type="button" class="close-btn" @click="onCustomMenuCloseClick">
+          <span class="glyphicon glyphicon-remove" style="color: #333333; font-size: 1.2em;"></span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-delete-mismatch"
+              @click="onCustomMenuUpdateClick" :disabled="!selectedRows.length">
+        <span class="glyphicon glyphicon-pencil"></span> Update site
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-sync-mismatch"
+              @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+        <span class="glyphicon glyphicon-flash"></span> Test connexion
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-sync-mismatch"
+              @click="runDiscoverList" :disabled="!selectedRows.length || loading">
+        <span class="glyphicon glyphicon-search"></span> Discover
+      </button>
+    </li>
+  </ul>
 
-<!-- Custom menu mismatch -->
-<ul id="customMenuMismatch" class="custom-context-menu">
-  <li class="menu-header">
-    <button type="button" class="close-btn" @click="onCustomMenuMismatchCloseClick">
-      <span class="glyphicon glyphicon-remove"></span>
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-details-mismatch"
-            @click="onCustomMenuMismatchDetailsClick">
-      <span class="glyphicon glyphicon-info-sign"></span> Show details
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-delete-mismatch"
-            @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
-      <span class="glyphicon glyphicon-pencil"></span> Update site
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-sync-mismatch"
-            @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
-      <span class="glyphicon glyphicon-flash"></span> Test connexion
-    </button>
-  </li>
-  <li>
-    <button class="menu-item" type="button" id="btn-sync-mismatch"
-            @click="runDiscoverList" :disabled="!selectedRows.length || loading">
-      <span class="glyphicon glyphicon-search"></span> Discover
-    </button>
-  </li>
-</ul>
+  <!-- Custom menu mismatch -->
+  <ul id="customMenuMismatch" class="custom-context-menu">
+    <li class="menu-header">
+      <button type="button" class="close-btn" @click="onCustomMenuMismatchCloseClick">
+          <span class="glyphicon glyphicon-remove" style="color: #333333; font-size: 1.2em;"></span>
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-details-mismatch"
+              @click="onCustomMenuMismatchDetailsClick">
+        <span class="glyphicon glyphicon-info-sign"></span> Show details
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-delete-mismatch"
+              @click="onCustomMenuMismatchUpdateClick" :disabled="!selectedRows.length">
+        <span class="glyphicon glyphicon-pencil"></span> Update site
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-sync-mismatch"
+              @click="runTestSelectedCredentials" :disabled="!selectedRows.length || loading">
+        <span class="glyphicon glyphicon-flash"></span> Test connexion
+      </button>
+    </li>
+    <li>
+      <button class="menu-item" type="button" id="btn-sync-mismatch"
+              @click="runDiscoverList" :disabled="!selectedRows.length || loading">
+        <span class="glyphicon glyphicon-search"></span> Discover
+      </button>
+    </li>
+  </ul>
 
   <div class="p-4 rounded">
     <div class="panel panel-default p-4 shadow-sm">
