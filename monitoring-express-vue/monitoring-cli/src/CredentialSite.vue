@@ -1054,12 +1054,12 @@ function closeDiscoverModal() {
       <div class="modal-content" style="box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
         
         <!-- Header -->
-        <div class="modal-header text-center">
-          <button type="button" class="close" @click="closeFormModal">&times;</button>
-          <h4 class="modal-title text-uppercase">
-            <i class="bi bi-pencil-square text-success"></i> Update Sites
-          </h4>
-        </div>
+      <div class="modal-header text-center" style="background-color: #3f3f3f; color: white;">
+        <button type="button" class="close" @click="closeFormModal" style="color: white;">&times;</button>
+        <h4 class="modal-title text-uppercase">
+          <i class="bi bi-pencil-square"></i> Update Sites
+        </h4>
+      </div>
 
         <!-- Body -->
         <div class="modal-body">
@@ -1070,6 +1070,7 @@ function closeDiscoverModal() {
               rows="2"
               readonly
               :value="selectedRows.map(row => row.Ip).join('\n')"
+              style="resize: none;"
             ></textarea>
           </div>
 
