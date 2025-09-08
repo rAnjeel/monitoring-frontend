@@ -733,7 +733,7 @@ function closeDiscoverModal() {
         <div class="alert alert-info text-center" style="font-size:1.2rem; margin:0;">
           <!-- Spinner CSS -->
           <div class="spinner" style="margin:0 auto 15px;"></div>
-          <div>Test SSH des sites en cours ...</div>
+          <div>Loading, this may take a moment... ...</div>
         </div>
       </div>
     </div>
