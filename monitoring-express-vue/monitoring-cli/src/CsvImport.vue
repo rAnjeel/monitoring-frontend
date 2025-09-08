@@ -123,8 +123,8 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
               >
                 <div class="dz-inner">
                   <i class="glyphicon glyphicon-upload" style="font-size:2rem;"></i>
-                  <div class="dz-title" style="margin-top:10px;">Glissez-déposez votre fichier CSV ici</div>
-                  <div class="dz-sub" style="color:#667;">ou cliquez pour parcourir</div>
+                  <div class="dz-title" style="margin-top:10px;">Drag your file here</div>
+                  <div class="dz-sub" style="color:#667;">or click to upload</div>
                   <input ref="fileInput" type="file" accept=".csv" @change="handleFileChange" hidden />
                 </div>
               </div>
@@ -144,10 +144,10 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
                 </button>
                 <button class="btn btn-primary btn-sm" type="button" :disabled="!fileName || isImporting" @click="handleImport">
                   <span v-if="isImporting" class="glyphicon glyphicon-refresh spinning" style="margin-right:5px;"></span>
-                  Importer
+                  Import
                 </button>
                 <button class="btn btn-link btn-sm" type="button" @click="handleClear" :disabled="!fileName">
-                  Effacer
+                  Clear
                 </button>
               </div>
 
@@ -158,7 +158,7 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
 
               <!-- Info -->
               <div style="margin-top:8px; color:#777; font-size:12px;">
-                Format accepté: .csv • Encodage UTF-8 recommandé
+                Accepted format: .csv • Encoding UTF-8 Recommended
               </div>
 
             </div>
