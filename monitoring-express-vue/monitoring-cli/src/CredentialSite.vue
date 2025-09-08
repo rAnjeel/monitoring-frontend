@@ -518,33 +518,33 @@ async function runDiscoverList() {
   }
 }
 
-function updateDiscover(item) {
-  if (!item) return
+// function updateDiscover(item) {
+//   if (!item) return
 
-  const rowsToUpdate = [item]
-  const formValues = {
-    username: item.siteUsername,
-    password: item.sitePassword,
-    port: item.sitePort,
-    siteSShVersion: item.siteSShVersion
-  }
+//   const rowsToUpdate = [item]
+//   const formValues = {
+//     username: item.siteUsername,
+//     password: item.sitePassword,
+//     port: item.sitePort,
+//     siteSShVersion: item.siteSShVersion
+//   }
 
-  bulkUpdateFormCredentials(rowsToUpdate, formValues)
-    .then(res => {
-      if (res.success) {
-        console.log(`Discovery updated: ${item.Ip}:${item.sitePort}`)
-        openSuccessModal(`Discovery updated: ${item.Ip}:${item.sitePort}`)
-        loadCredentials()
-      } else {
-        console.error('Update failed:', res.error)
-        openSuccessModal(`Update failed: ${res.error}`)
-      }
-    })
-    .catch(err => {
-      console.error('Error during discovery update:', err)
-      openSuccessModal(`Error during discovery update: ${err.message}`)
-    })
-}
+//   bulkUpdateFormCredentials(rowsToUpdate, formValues)
+//     .then(res => {
+//       if (res.success) {
+//         console.log(`Discovery updated: ${item.Ip}:${item.sitePort}`)
+//         openSuccessModal(`Discovery updated: ${item.Ip}:${item.sitePort}`)
+//         loadCredentials()
+//       } else {
+//         console.error('Update failed:', res.error)
+//         openSuccessModal(`Update failed: ${res.error}`)
+//       }
+//     })
+//     .catch(err => {
+//       console.error('Error during discovery update:', err)
+//       openSuccessModal(`Error during discovery update: ${err.message}`)
+//     })
+// }
 
 
 function handleExport() {
@@ -1283,13 +1283,6 @@ function closeDiscoverModal() {
               </div>
               <div style="display:flex; gap:10px; align-items:center;">
                 <span class="badge bg-success">Success</span>
-                <button
-                  v-if="item.sitePort" 
-                  class="btn btn-sm btn-outline-primary"
-                  @click="updateDiscover(item)"
-                >
-                  Update
-                </button>
               </div>
             </li>
           </ul>
