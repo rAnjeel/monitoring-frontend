@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
-import { syncCredentials, bulkUpdateCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm, discover } from './services/credentials'
+import { syncCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm, discover } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
 import 'ag-grid-community/styles/ag-grid.css';
@@ -64,7 +64,6 @@ const error = ref(null)
 const showModal = ref(false)
 const modalCredential = ref({})
 const syncResult = ref(null)
-const updatedRows = ref([])
 const gridRefMismatch = ref(null)
 const gridRef = ref(null)
 const selectedRows = ref([])
@@ -394,21 +393,6 @@ function onSelectionChanged(event) {
   console.log("Lignes sélectionnées :", selectedRows.value)
   console.log("=== LIGNES SÉLECTIONNÉES ===", selectedRows.value.length)
 }
-
-const showSaveButton = ref(false)
-
-
-async function saveUpdates() {
-  try {
-    await bulkUpdateCredentials(updatedRows.value)
-    openSuccessModal('Mise à jour réussie')
-    updatedRows.value = []
-  } catch (err) {
-    openSuccessModal('Échec de la mise à jour')
-    console.error(err)
-  }
-}
-
 
 function getSelectedRows() {
   console.log("=== LIGNES SÉLECTIONNÉES ===")
@@ -843,19 +827,7 @@ async function confirmSync() {
         </div>
 
         <div class="panel-body">
-          <div class="text-right" style="margin:15px 0;">
-            <button class="btn btn-primary btn-sm" @click="getSelectedRows">
-              <i class="bi bi-pencil-square"></i> Update Credentials
-            </button>
-          </div>
-
-          <div class="text-right" style="margin:15px 0;" v-if="showSaveButton">
-            <button class="btn btn-success btn-sm" @click="saveUpdates">
-              <i class="bi bi-save"></i> Save {{ selectedRows.length }} modification(s)
-            </button>
-          </div>
-
-          <!-- Grid -->
+          <!-- Grid Mismatch-->
           <div style="max-height:380px; overflow:auto; margin-top:15px;">
             <MismatchGrid
               :rowData="syncResult.mismatches"
