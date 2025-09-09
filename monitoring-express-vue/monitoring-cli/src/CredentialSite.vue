@@ -168,10 +168,20 @@ const columnMismatchDefs = ref([
         : '<span class="label label-danger">Mismatch</span>';
     }
   },
-
   { 
     field: 'portMatch', 
     headerName: 'Port Match',
+    headerStyle: { 'backgroundColor': '#3F3F3F', 'color': 'white', 'font-weight': 'bold'},
+    flex: 4, 
+    cellRenderer: (params) => {
+      return params.value
+        ? '<span class="label label-success">OK</span>'
+        : '<span class="label label-danger">Mismatch</span>';
+    }
+  },
+    { 
+    field: 'shellMatch', 
+    headerName: 'Shell Match', 
     headerStyle: { 'backgroundColor': '#3F3F3F', 'color': 'white', 'font-weight': 'bold'},
     flex: 4, 
     cellRenderer: (params) => {
@@ -461,10 +471,7 @@ async function runTestSelectedCredentials() {
     }
 
     console.log('[runTestSelectedCredentials] Résultats du test :', syncResult.value)
-
-    if (gridRef.value?.api) {
-      showSyncSummary() // ou une fonction spécifique type showTestSummary() si tu veux séparer
-    }
+    showTestSummary()
 
     await loadCredentials()
   } catch (err) {
@@ -693,13 +700,13 @@ function showTestSummary() {
   if (syncResult.value.mismatches.length === 0) {
     results.push({
       success: true,
-      message: "Tous les credentials ont réussi ✅"
+      message: "All sites are able to connect ✅"
     })
   } else {
     syncResult.value.mismatches.forEach((m) => {
       results.push({
         success: false,
-        message: `Échec sur ${m.Ip}:${m.sitePort} - ${m.errorDescription || 'Erreur inconnue'}`
+        message: `Error on ${m.Ip}:${m.sitePort} - ${m.errorDescription || 'Unknown error'}`
       })
     })
   }
@@ -1259,7 +1266,7 @@ async function confirmSync() {
               style="display:flex; justify-content:space-between; align-items:center;"
             >
               <div>
-                <div style="font-weight:600;">Credential {{ index + 1 }}</div>
+                <div style="font-weight:600;">Error {{ index + 1 }}</div>
                 <div class="text-muted small">{{ result.message || 'Aucun message.' }}</div>
               </div>
               <span
@@ -1269,7 +1276,7 @@ async function confirmSync() {
                   color: '#fff'
                 }"
               >
-                {{ result.success ? 'Succès' : 'Échec' }}
+                {{ result.success ? 'Success' : 'Failed' }}
               </span>
             </li>
           </ul>
