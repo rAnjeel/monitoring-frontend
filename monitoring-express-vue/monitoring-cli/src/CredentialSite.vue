@@ -1192,7 +1192,7 @@ function closeDiscoverModal() {
         <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
         <h4 style="margin-top:15px; font-weight:bold;">Result message</h4>
         <p class="text-muted" style="margin-bottom:20px;">{{ successMessage }}</p>
-        <button class="btn btn-success" style="padding:6px 20px; border-radius:25px;" @click="closeSuccessModal">
+        <button class="btn btn-success" style="padding:6px 20px;" @click="closeSuccessModal">
           OK
         </button>
       </div>
@@ -1207,7 +1207,6 @@ function closeDiscoverModal() {
         style="
           padding:25px;
           border:0;
-          border-radius:12px;
           background: linear-gradient(135deg,#ffffffcc,#f8f9facc);
           backdrop-filter: blur(10px);
           box-shadow: 0 8px 24px rgba(0,0,0,0.2);
@@ -1250,7 +1249,7 @@ function closeDiscoverModal() {
         <div class="text-center">
           <button
             class="btn btn-primary"
-            style="padding:6px 20px; border-radius:25px;"
+            style="padding:6px 20px;"
             @click="closeTestModal"
           >
             Close
@@ -1347,7 +1346,7 @@ function closeDiscoverModal() {
         <div class="text-center">
           <button
             class="btn btn-primary"
-            style="padding:6px 20px; border-radius:25px;"
+            style="padding:6px 20px;"
             @click="closeDiscoverModal"
           >
             Close
