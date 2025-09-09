@@ -22,6 +22,10 @@ defineProps({
   }
 })
 
+const autoReload = ref(false)
+let reloadInterval = null
+const timeReload = process.env.VUE_APP_RELOAD || 10000;
+const timeValueSeconde = Math.ceil(timeReload / 1000);
 
 onMounted(async () => {
   document.addEventListener("contextmenu", disableContextMenu)
@@ -32,6 +36,21 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   document.removeEventListener("contextmenu", disableContextMenu)
+  if (reloadInterval) clearInterval(reloadInterval)
+})
+
+
+watch(autoReload, (newValue) => {
+  if (newValue) {
+    reloadInterval = setInterval(() => {
+      loadCredentials()
+    }, timeReload)
+  } else {
+    if (reloadInterval) {
+      clearInterval(reloadInterval)
+      reloadInterval = null
+    }
+  }
 })
 
 function disableContextMenu(e) {
@@ -722,11 +741,11 @@ async function confirmSync() {
   <div class="container-fluid px-4 py-3">
     <div class="d-flex align-items-center justify-content-between p-4 rounded shadow-sm bg-white">
       <div class="me-4">
-        <h3 class="mt-2 mb-0 fw-bold">Sites credentials</h3>
+        <h3 class="mt-2 mb-0 fw-bold">Sites Logs</h3>
         <small class="text-muted">Last update: {{ lastUpdated ? new Date(lastUpdated).toLocaleString() : '—' }}</small>
       </div>
       <div class="ms-4">
-        <button class="btn btn-primary d-flex align-items-center" @click="openConfirmModal" :disabled="loading">
+        <button class="btn btn-primary d-flex align-items-center text-uppercase" @click="openConfirmModal" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           <i v-else class="bi bi-arrow-repeat me-2"></i>
           Test all sites
@@ -910,31 +929,39 @@ async function confirmSync() {
     <div class="panel panel-default p-4 shadow-sm">
       <div class="panel-heading text-uppercase" style="display: flex; align-items: center; justify-content: space-between;">
         <h5 class="mb-0">
-          List Sites 
+          Sites with SSH Issues
           <span class="badge">{{ filteredCredentials.length }}</span>
         </h5>
         <div class="btn-group" style="display: flex;">
-          <!-- Export -->
-          <button class="btn btn-primary" @click="handleExport" style="margin-right:6px; background-color: #3498DB;">
-            <span class="glyphicon glyphicon-download-alt"></span> Export CSV
-          </button>
-
-          <button class="btn btn-primary" @click="$router.push('/import-csv')" style="margin-right:6px; background-color: #3498DB;">
-            <span class="glyphicon glyphicon-upload"></span> Import CSV
-          </button>
-
-
-          <!-- Select/Unselect All -->
-          <button class="btn btn-primary" @click="toggleSelectAll" style="margin-right:6px; background-color: #3498DB;">
-            <span class="glyphicon glyphicon-check"></span>
-            {{ allSelected ? 'Unselect All' : 'Select All' }}
-          </button>
-
           <!-- Reload -->
           <button class="btn btn-link" @click="loadCredentials" :disabled="loading">
             <span v-if="loading" class="glyphicon glyphicon-refresh spinning"></span>
-            <span v-else class="glyphicon glyphicon-repeat"></span>
+            <span v-else class="glyphicon glyphicon-repeat text-uppercase"></span>
             Reload
+          </button>
+
+          <!-- Auto reload toggle -->
+          <div class="switchReloadContainer" style="display:flex; align-items:center; margin-left:6px;">
+            <label class="switchReload" style="margin:0; display:flex; align-items:center; cursor:pointer;">
+              <input type="checkbox" id="autoReloadSwitch" v-model="autoReload">
+              <span class="sliderReload"></span>
+            </label>
+            <span class="text-lowercase" style="margin-left: 5px; margin-right: 15px; color: #3498DB;"> Auto reload ({{ timeValueSeconde }}s) </span>
+          </div>
+
+          <!-- Export -->
+          <button class="btn btn-primary text-uppercase" @click="handleExport" style="margin-right:6px; background-color: #3498DB;">
+            <span class="glyphicon glyphicon-download-alt"></span> Export CSV
+          </button>
+
+          <button class="btn btn-primary text-uppercase" @click="$router.push('/import-csv')" style="margin-right:6px; background-color: #3498DB;">
+            <span class="glyphicon glyphicon-upload"></span> Import CSV
+          </button>
+
+          <!-- Select/Unselect All -->
+          <button class="btn btn-primary text-uppercase" @click="toggleSelectAll" style="margin-right:6px; background-color: #3498DB;">
+            <span class="glyphicon glyphicon-check"></span>
+            {{ allSelected ? 'Unselect All' : 'Select All' }}
           </button>
         </div>
       </div>
