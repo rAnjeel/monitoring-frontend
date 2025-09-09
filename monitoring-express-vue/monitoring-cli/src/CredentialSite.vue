@@ -1121,6 +1121,13 @@ function closeDiscoverModal() {
         <div class="modal-footer text-center">
           <button
             class="btn"
+            @click="runDiscoverList()"
+            style="background-color: #3498DB;"
+          >
+            Discover
+          </button>
+          <button
+            class="btn"
             @click="runTestFormCredentials()"
             :disabled="!isFormComplete"
             style="background-color: #3498DB;"
