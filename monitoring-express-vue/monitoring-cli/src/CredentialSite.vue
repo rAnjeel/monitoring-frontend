@@ -708,12 +708,6 @@ function closeDiscoverModal() {
   <div class="container-fluid px-4 py-3">
     <div class="d-flex align-items-center justify-content-between p-4 rounded shadow-sm bg-white">
       <div class="me-4">
-        <nav aria-label="breadcrumb" class="mb-2">
-          <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item">Monitoring</li>
-            <li class="breadcrumb-item active" aria-current="page">Overview</li>
-          </ol>
-        </nav>
         <h3 class="mt-2 mb-0 fw-bold">Sites credentials</h3>
         <small class="text-muted">Last update: {{ lastUpdated ? new Date(lastUpdated).toLocaleString() : '—' }}</small>
       </div>
@@ -908,7 +902,7 @@ function closeDiscoverModal() {
         <div class="btn-group" style="display: flex;">
           <!-- Export -->
           <button class="btn btn-primary" @click="handleExport" style="margin-right:6px; background-color: #3498DB;">
-            <span class="glyphicon glyphicon-download-alt"></span> Export
+            <span class="glyphicon glyphicon-download-alt"></span> Export CSV
           </button>
 
           <button class="btn btn-primary" @click="$router.push('/import-csv')" style="margin-right:6px; background-color: #3498DB;">
@@ -1051,17 +1045,14 @@ function closeDiscoverModal() {
     style="display: block; background: rgba(0,0,0,0.3);"
   >
     <div class="modal-dialog" style="max-width: 400px;">
-      <div class="modal-content" style="box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
-        
-        <!-- Header -->
-      <div class="modal-header text-center" style="background-color: #3f3f3f; color: white;">
-        <button type="button" class="close" @click="closeFormModal" style="color: white;">&times;</button>
-        <h4 class="modal-title text-uppercase">
-          <i class="bi bi-pencil-square"></i> Update Sites
-        </h4>
-      </div>
+      <div class="modal-content" style="box-shadow: 0 6px 18px rgba(0,0,0,0.15);">        
+        <div class="modal-header text-center" style="background-color: #3f3f3f; color: white;">
+          <button type="button" class="close" @click="closeFormModal" style="color: white;">&times;</button>
+          <h4 class="modal-title text-uppercase">
+            <i class="bi bi-pencil-square"></i> Update Sites
+          </h4>
+        </div>
 
-        <!-- Body -->
         <div class="modal-body">
           <div class="form-group">
             <label>IP (Selected sites)</label>
@@ -1169,7 +1160,7 @@ function closeDiscoverModal() {
         </div>
         <div class="modal-footer">
           <button class="btn btn-default" @click="cancelExport">Cancel</button>
-          <button class="btn btn-success" @click="confirmExport">Export</button>
+          <button class="btn btn-primary" @click="confirmExport">Export</button>
         </div>
       </div>
     </div>
@@ -1297,15 +1288,15 @@ function closeDiscoverModal() {
             >
               <div>
                 <div class="text-muted small">
-                  SITE : {{ item.id }}
+                  ID : {{ item.id }}
                 </div>
-                <div style="font-weight:600;">{{ item.siteUsername }} : {{ item.Ip }} </div>
+                <div style="font-weight:600;">Username & IP : {{ item.siteUsername }} @ {{ item.Ip }} </div>
                 <div class="text-muted small">
-                  Password: {{ item.password }} | Port: {{ item.sitePort }} | Shell: {{ item.siteSShVersion }}
+                  Password : {{ item.password }} | Port : {{ item.sitePort }} | Shell : {{ item.siteSShVersion }}
                 </div>
               </div>
               <div style="display:flex; gap:10px; align-items:center;">
-                <span class="badge bg-success">Success</span>
+                <span class="badge bg-success" style="background-color: #2ecc71;">Success</span>
               </div>
             </li>
           </ul>
@@ -1322,19 +1313,21 @@ function closeDiscoverModal() {
               style="display:flex; justify-content:space-between; align-items:center;"
             >
               <div>
-                <div style="font-weight:600;">{{ err.Ip }} : {{ err.sitePort }}</div>
-                <div class="text-muted small">{{ err.errorDescription }}</div>
+                <div class="text-muted small">ID : {{ err.id }} </div>
+                <div class="text-muted small">CodeSite : {{ err.CodeSite }} </div>
+                <div style="font-weight:600;">IP : {{ err.Ip }} | Port : {{ err.sitePort }}</div>
+                <div style="font-weight:600; color:#e74c3c;">Error : {{ err.errorDescription }}</div>
               </div>
-              <span class="badge bg-danger">Failed</span>
+              <span class="badge bg-danger" style="background-color: #e74c3c;">Failed</span>
             </li>
           </ul>
         </div>
 
         <!-- Stats -->
         <div v-if="discoverResults?.stats" class="text-center text-muted small" style="margin-bottom:15px;">
-          Total: {{ discoverResults.stats.total }} |
-          Success: {{ discoverResults.stats.success }} |
-          Failed: {{ discoverResults.stats.failed }}
+          Total : {{ discoverResults.stats.total }} |
+          Success : {{ discoverResults.stats.success }} |
+          Failed : {{ discoverResults.stats.failed }}
         </div>
 
         <!-- Empty -->

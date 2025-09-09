@@ -13,6 +13,8 @@ const fileRef = ref(null)
 const fileInput = ref(null)
 const isImporting = ref(false)
 const isDragOver = ref(false)
+const showResultModal = ref(false)
+const importResults = ref([])
 
 const api = axios.create({
   baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:3000',
@@ -26,7 +28,6 @@ function handleFileChange(event) {
 async function handleImport() {
   if (!fileRef.value) {
     error.value = 'Veuillez sélectionner un fichier CSV.'
-    console.log('[CsvImport] Aucun fichier sélectionné')
     return
   }
 
@@ -35,31 +36,31 @@ async function handleImport() {
     try {
       isImporting.value = true
       const text = e.target.result
-      console.log('[CsvImport] Contenu brut du fichier :', text)
       const data = parseCSV(text)
-      console.log('[CsvImport] Résultat du parseur CSV :', data)
       if (!data.length) throw new Error('Fichier vide ou mal formaté')
 
-      // Debug: Afficher le JSON qui sera envoyé
-      console.log('[CsvImport] JSON à envoyer au backend:', JSON.stringify(data, null, 2))
-
       // Envoi du JSON à NestJS
-      await api.post('/import-csv', data)
+      const res = await api.post('/import-csv', data)
+
+      // On récupère les résultats
+      importResults.value = res.data
+      showResultModal.value = true
 
       emit('import', { data, name: fileRef.value.name })
-      console.log('[CsvImport] Événement import émis avec', data.length, 'lignes')
       error.value = ''
     } catch (e) {
       error.value = "Erreur lors de l'import : " + e.message
-      console.error('[CsvImport] Erreur lors de l\'import :', e)
     } finally {
       isImporting.value = false
     }
   }
   reader.readAsText(fileRef.value)
-  console.log('[CsvImport] Lecture du fichier lancée')
 }
 
+function closeResultModal() {
+  showResultModal.value = false
+  importResults.value = []
+}
 
 function handleDrop(e) {
   e.preventDefault()
@@ -115,7 +116,6 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
                 @dragover.prevent="isDragOver = true"
                 @dragleave.prevent="isDragOver = false"
                 @drop="handleDrop"
-                @click="$refs.fileInput.click()"
                 role="button"
                 tabindex="0"
                 aria-label="Glissez un fichier CSV ou cliquez pour sélectionner"
@@ -163,6 +163,41 @@ const fileSize = computed(() => fileRef.value ? formatBytes(fileRef.value.size) 
 
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Résultats Import -->
+  <div v-if="showResultModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.3);">
+    <div class="modal-dialog" style="max-width:600px;">
+      <div
+        class="modal-content"
+        style="
+          padding: 20px;
+          border:0;
+          border-radius:12px;
+          background: #fff;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        "
+      >
+        <h4 style="font-weight:bold; margin-bottom:15px;">Import result</h4>
+
+        <div style="max-height:300px; overflow-y:auto; text-align:left;">
+          <ul class="list-group">
+            <li
+              v-for="(result, idx) in importResults"
+              :key="idx"
+              class="list-group-item"
+              :class="{'list-group-item-success': result.status === 'success', 'list-group-item-danger': result.status === 'error'}"
+            >
+              <strong>{{ result.status.toUpperCase() }}</strong> - {{ result.message }}
+            </li>
+          </ul>
+        </div>
+
+        <div style="margin-top:20px; text-align:center;">
+          <button class="btn btn-primary" @click="closeResultModal">Close</button>
         </div>
       </div>
     </div>
