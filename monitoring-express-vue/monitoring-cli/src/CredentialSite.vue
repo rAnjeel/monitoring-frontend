@@ -57,6 +57,7 @@ const testResults = ref([])
 const allSelected = ref(false)
 const showPassword = ref(false)
 const showDiscoverModal = ref(false)
+const showConfirmModal = ref(false)
 const discoverResults = ref(null)
 const formValues = ref({
   username: '',
@@ -701,6 +702,19 @@ function closeDiscoverModal() {
   showDiscoverModal.value = false
 }
 
+function openConfirmModal() {
+  showConfirmModal.value = true
+}
+
+function closeConfirmModal() {
+  showConfirmModal.value = false
+}
+
+async function confirmSync() {
+  closeConfirmModal()
+  await syncSites()
+}
+
 </script>
 
 <template>
@@ -712,10 +726,10 @@ function closeDiscoverModal() {
         <small class="text-muted">Last update: {{ lastUpdated ? new Date(lastUpdated).toLocaleString() : '—' }}</small>
       </div>
       <div class="ms-4">
-        <button class="btn btn-primary d-flex align-items-center" @click="syncSites" :disabled="loading">
+        <button class="btn btn-primary d-flex align-items-center" @click="openConfirmModal" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
           <i v-else class="bi bi-arrow-repeat me-2"></i>
-          Synchronize all sites
+          Test all sites
         </button>
       </div>
     </div>
@@ -1348,6 +1362,38 @@ function closeDiscoverModal() {
       </div>
     </div>
   </div>
+
+  <!-- Confirmation Modal -->
+  <div v-if="showConfirmModal" class="modal fade in" tabindex="-1" style="display:block; background: rgba(0,0,0,0.4);">
+    <div class="modal-dialog" style="max-width:420px;">
+      <div
+        class="modal-content text-center"
+        style="
+          padding: 25px;
+          border:0;
+          border-radius:12px;
+          background: linear-gradient(135deg,#ffffff,#f8f9fa);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        "
+      >
+        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size:2.5rem;"></i>
+        <h4 style="margin-top:15px; font-weight:bold;">Confirm Test</h4>
+        <p class="text-muted" style="margin-bottom:20px;">
+          This action will test <strong>{{ filteredCredentials.length }}</strong> sites.<br>
+          Estimated duration: <strong>{{ Math.ceil((filteredCredentials.length * 5) / 60) }}</strong> minutes.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn btn-secondary" @click="closeConfirmModal">
+            Cancel
+          </button>
+          <button class="btn btn-primary" @click="confirmSync">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 
 </template>
