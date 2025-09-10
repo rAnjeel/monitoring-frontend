@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { syncCredentials, bulkUpdateFormCredentials, getHistoricCredentials, testCredentialsList, testCredentialsForm, discover } from './services/credentials'
 import { formatDateFR } from './utils/dateFormatter'
 import { exportAgGridToCsv } from './utils/csv.js'
+import { VueSpinnerInfinity } from 'vue3-spinners'
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
@@ -751,11 +752,25 @@ async function confirmSync() {
     <div class="modal-dialog" style="margin-top:20%;">
       <div class="modal-content" style="border:0; background:transparent; box-shadow:none;">
         <div class="alert alert-info text-center" style="font-size:1.2rem; margin:0;">
-          <!-- Spinner CSS -->
-          <div class="spinner" style="margin:0 auto 15px;"></div>
-          <div>Loading, this may take a moment... ...</div>
+          <VueSpinnerInfinity size="60" color="#3498db" />
+          <p class="mt-4 text-gray-700 text-base">
+            Loading, this may take a moment...
+          </p>
         </div>
       </div>
+    </div>
+  </div>
+
+    <div
+    v-if="loading"
+    class="fixed inset-0 flex items-center justify-center"
+    style="background: rgba(0,0,0,0.5); z-index:2000;"
+  >
+    <div class="bg-white rounded-lg p-6 text-center shadow-lg">
+      <VueSpinnerInfinity size="60" color="#3498db" />
+      <p class="mt-4 text-gray-700 text-base">
+        Loading, this may take a moment...
+      </p>
     </div>
   </div>
 
