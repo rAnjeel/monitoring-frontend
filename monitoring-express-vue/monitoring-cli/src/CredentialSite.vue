@@ -929,16 +929,16 @@ async function confirmSync() {
           </div>
 
           <!-- Export -->
-          <button class="btn btn-primary text-uppercase" @click="handleExport" style="margin-right:6px; background-color: #3498DB;">
+          <button class="btn btn-primary d-flex align-items-center text-uppercase" @click="handleExport" style="margin-right:6px; background-color: #3498DB;">
             <span class="glyphicon glyphicon-download-alt"></span> Export CSV
           </button>
 
-          <button class="btn btn-primary text-uppercase" @click="$router.push('/import-csv')" style="margin-right:6px; background-color: #3498DB;">
+          <button class="btn btn-primary d-flex align-items-center text-uppercase" @click="$router.push('/import-csv')" style="margin-right:6px; background-color: #3498DB;">
             <span class="glyphicon glyphicon-upload"></span> Import CSV
           </button>
 
           <!-- Select/Unselect All -->
-          <button class="btn btn-primary text-uppercase" @click="toggleSelectAll" style="margin-right:6px; background-color: #3498DB;">
+          <button class="btn btn-primary d-flex align-items-center text-uppercase" @click="toggleSelectAll" style="margin-right:6px; background-color: #3498DB;">
             <span class="glyphicon glyphicon-check"></span>
             {{ allSelected ? 'Unselect All' : 'Select All' }}
           </button>
