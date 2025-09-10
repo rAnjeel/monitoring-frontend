@@ -1,5 +1,5 @@
 .custom-context-menu {
-  position: relative;
+  position: fixed;
   display: none;
   background: #fff;
   border: 1px solid #ccc;

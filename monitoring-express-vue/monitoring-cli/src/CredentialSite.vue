@@ -761,19 +761,6 @@ async function confirmSync() {
     </div>
   </div>
 
-    <div
-    v-if="loading"
-    class="fixed inset-0 flex items-center justify-center"
-    style="background: rgba(0,0,0,0.5); z-index:2000;"
-  >
-    <div class="bg-white rounded-lg p-6 text-center shadow-lg">
-      <VueSpinnerInfinity size="60" color="#3498db" />
-      <p class="mt-4 text-gray-700 text-base">
-        Loading, this may take a moment...
-      </p>
-    </div>
-  </div>
-
   <!-- Message d'erreur -->
   <div v-if="error" class="alert alert-danger">
     {{ error }}
