@@ -17,7 +17,7 @@ const showResultModal = ref(false)
 const importResults = ref([])
 
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:3000',
+  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:3001',
 })
 
 function handleFileChange(event) {
